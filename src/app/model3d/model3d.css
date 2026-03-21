@@ -1,0 +1,14 @@
+#divModelado{
+  position:relative;
+  height: 100vh;
+  width: 100%;
+}
+
+#tools{
+  position:absolute;
+  color: white;
+}
+
+#crearBloque{
+  border: 3px solid yellowgreen;
+}
