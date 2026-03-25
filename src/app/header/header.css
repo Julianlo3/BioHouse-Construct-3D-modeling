@@ -1,0 +1,85 @@
+/* Paleta: Verde Oscuro: #1b4332 | Verde Claro: #74c69d | Blanco: #ffffff */
+
+.main-header {
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #ffffff;
+}
+
+.header-top {
+  width: 100%;
+  height: 20vh; 
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  padding: 0 40px;
+  border-bottom: 2px solid #74c69d;
+  box-sizing: border-box;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo {
+  height: 8vh; 
+  width: auto;
+}
+
+.brand-title {
+  font-size: 1.8rem;
+  color: #1b4332;
+  text-transform: uppercase;
+}
+
+/* Botones y eslogan */
+.actions-group {
+  display: flex;
+  align-items: center;
+  gap: 30px; 
+  padding: 5px;
+}
+
+.slogan {
+  color: #1b4332;
+  font-weight: 500;
+  margin: 0;
+  font-style: italic;
+}
+
+.btn-nav {
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 0; /* Asegura que sean perfectamente cuadrados */
+  
+  /* 3. Texto y espaciado */
+  color: #000000; /* Texto negro para contrastar con el fondo blanco */
+  padding: 10px 25px;
+  font-weight: bold;
+  text-transform: uppercase; /* Opcional: para un look más técnico */
+  cursor: pointer;
+  font-size: 0.9rem;
+  
+  /* 4. Transición suave para el hover */
+  transition: all 0.2s ease-in-out;
+  
+  /* Opcional: Una pequeña sombra "blocky" para estilizar */
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+}
+
+/* --- Efecto Hover para los botones --- */
+.btn-nav:hover {
+  /* Invertimos los colores al pasar el mouse para un feedback claro */
+  background-color: #000000;
+  color: #ffffff;
+  transform: translate(-1px, -1px); /* Pequeño movimiento */
+  box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
+}
+
+/* Estilo para cuando se hace click (active) */
+.btn-nav:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+}

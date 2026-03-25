@@ -1,0 +1,64 @@
+/* 1. Contenedor principal: Ocupa todo el ancho */
+.main-wrapper {
+  width: 100%;
+  background-color: #1b4332;
+  min-height: 70vh; /* Aumentamos un poco para que el modelo luzca mejor */
+  display: flex;
+  justify-content: center; /* Centra el bloque de 90% en la pantalla */
+}
+
+/* 2. El bloque que contiene botones y respuesta */
+#actionsModel {
+  width: 90%; /* Ahora sí ocupa el 90% del ancho total */
+  max-width: none; /* ELIMINADO: Ya no restringimos a 1200px */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+  padding: 5vh 0; /* Padding vertical, el horizontal lo da el width 90% */
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  z-index: 2;
+  margin-left: 0; /* Alineado exacto al borde de la caja blanca */
+}
+
+/* Botones (Sin cambios, solo ajuste de posición) */
+#actionsModel button {
+  background-color: #74c69d;
+  border: 5px solid #000000;
+  padding: 15px 40px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  bottom: -5px; 
+  transition: all 0.2s ease;
+  color: #1b4332;
+}
+
+#actionsModel button.active {
+  background-color: #ffffff;
+  color: #000000;
+  border-bottom: 5px solid #ffffff; 
+}
+
+/* 3. Panel de Respuesta: Ahora ocupará el 100% de su padre (que es el 90% total) */
+#seccionRespuetaBoton {
+  width: 100%; 
+  min-height: 60vh; /* Altura generosa para el modelo 3D */
+  background-color: #ffffff;
+  border: 5px solid #000000;
+  z-index: 1;
+  box-sizing: border-box; /* Crucial para que el padding no "infle" la caja */
+  box-shadow: 15px 15px 0px rgba(0,0,0,0.2);
+  overflow: hidden; /* Evita que el modelo "ensucie" los bordes si se sale */
+}
+
+/* Asegurar que el componente de Three.js llene el espacio */
+app-start {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
