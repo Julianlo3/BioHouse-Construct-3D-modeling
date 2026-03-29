@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, NgZone, ViewChild, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import * as THREE from "three";
 import { OrbitControls }  from "three/examples/jsm/controls/OrbitControls.js";
 import { TEXTURE_MAP } from '../constants/textures/textures.constant';
@@ -11,6 +11,8 @@ import { TEXTURE_MAP } from '../constants/textures/textures.constant';
   styleUrl: './model3d.css',
 })
 export class Model3d implements AfterViewInit {
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
 
   //diccionario de texturas
@@ -38,8 +40,12 @@ export class Model3d implements AfterViewInit {
 
   selectCube(cube: THREE.Mesh): void
   { if (this.selectedCube)
-  { (this.selectedCube.material as THREE.MeshStandardMaterial) .color.set(0xaaaaaa); }
-    this.selectedCube = cube; (cube.material as THREE.MeshStandardMaterial) .color.set(0xff0000); }
+  {
+    (this.selectedCube.material as THREE.MeshStandardMaterial) .color.set(0xaaaaaa);
+  }
+    this.selectedCube = cube; (cube.material as THREE.MeshStandardMaterial) .color.set(0xff0000);
+    this.cdr.detectChanges();
+  }
 
   ngAfterViewInit(): void {
     this.initThree();
@@ -63,7 +69,7 @@ export class Model3d implements AfterViewInit {
     const widthRenderer: number = 1200;
     const heightRenderer: number = 700;
     this.renderer = new THREE.WebGLRenderer({antialias: true});
-    this.renderer.setSize(1200, 500); //
+    this.renderer.setSize(widthRenderer, heightRenderer); //
     this.container.nativeElement.appendChild(this.renderer.domElement);
 
     //----------------------------
@@ -87,7 +93,7 @@ export class Model3d implements AfterViewInit {
     const axesHelper = new THREE.AxesHelper(10);
     this.scene.add(axesHelper);
       // malla
-    const gridHelper = new THREE.GridHelper(200, 150, 0xffffff, 0xffffff)
+    const gridHelper = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff)
     this.scene.add(gridHelper);
 
     // cargue de texturas iniciales
@@ -116,10 +122,9 @@ export class Model3d implements AfterViewInit {
       this.raycaster.setFromCamera(this.mouse, this.camera);
       const intersects = this.raycaster.intersectObjects(this.scene.children);
 
-      const cubeHit = intersects.find(obj =>
-        obj.object instanceof THREE.Mesh &&
-        obj.object.geometry instanceof THREE.BoxGeometry
-      );
+      const cubeHit = intersects.find((obj) => {
+        return obj.object instanceof THREE.Mesh && obj.object.geometry.type === 'BoxGeometry';
+      });
 
       if (cubeHit) { this.selectCube(cubeHit.object as THREE.Mesh); }
 
@@ -190,6 +195,8 @@ export class Model3d implements AfterViewInit {
 
     this.buttonX = (vector.x * 0.5 + 0.5) * rect.width;
     this.buttonY = (-vector.y * 0.5 + 0.5) * rect.height;
+
+    this.cdr.detectChanges();
   }
 
   animate = () => {
