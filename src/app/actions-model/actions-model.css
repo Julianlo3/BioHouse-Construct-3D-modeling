@@ -78,9 +78,10 @@
   animation-delay: 0.25s;
 }
 
-.dropdown-button:hover {
+.dropdown-button.active {
   background-color: #1b4332;
-  transform: scale(1.1);
+  border-color: #74c69d;
+  box-shadow: 0 0 10px rgba(116, 198, 157, 0.5);
 }
 
 @keyframes slideIn {
@@ -108,4 +109,7 @@
   left: 2vh;
   display: inline-block;
   z-index: 1000;
+}
+.mouse-red-cursor {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='red'/%3E%3C/svg%3E"), auto !important;
 }

@@ -1,9 +1,11 @@
-import { AfterViewInit, Component, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import * as THREE from "three";
 import { OrbitControls }  from "three/examples/jsm/controls/OrbitControls.js";
 import { TEXTURE_MAP } from '../constants/textures/textures.constant';
 
 import { ActionsModel } from '../actions-model/actions-model';
+import { CubeSelectionService } from '../services/cube-selection.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-model3d',
@@ -11,10 +13,11 @@ import { ActionsModel } from '../actions-model/actions-model';
   templateUrl: './model3d.html',
   styleUrl: './model3d.css',
 })
-export class Model3d implements AfterViewInit {
+export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef, private cubeSelectionService: CubeSelectionService) {}
 
+  private subscription: Subscription = new Subscription();
 
   //diccionario de texturas
   public textures = TEXTURE_MAP;
@@ -26,8 +29,8 @@ export class Model3d implements AfterViewInit {
   // Div donde se creará el render de la vision 3D
   @ViewChild('modelado', { static: false })
   private container!: ElementRef;
-  // Variables necesarias para THREE
 
+  // Variables necesarias para THREE
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
@@ -39,13 +42,16 @@ export class Model3d implements AfterViewInit {
   // Logica de cubo seleccionado
   selectedCube: THREE.Mesh | null = null;
 
-  selectCube(cube: THREE.Mesh): void
-  { if (this.selectedCube)
-  {
-    (this.selectedCube.material as THREE.MeshStandardMaterial) .color.set(0xaaaaaa);
+  ngOnInit(): void {
+    this.subscription.add(
+      this.cubeSelectionService.selectCube$.subscribe(() => {
+        this.cubeSelectionService.setRaycasterActive(true);
+      })
+    );
   }
-    this.selectedCube = cube; (cube.material as THREE.MeshStandardMaterial) .color.set(0xff0000);
-    this.cdr.detectChanges();
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   ngAfterViewInit(): void {
@@ -53,11 +59,19 @@ export class Model3d implements AfterViewInit {
     this.animate();
   }
 
-  initThree(){
+  selectCube(cube: THREE.Mesh): void {
+    if (this.selectedCube) {
+      (this.selectedCube.material as THREE.MeshStandardMaterial).color.set(0xaaaaaa);
+    }
+    this.selectedCube = cube;
+    (cube.material as THREE.MeshStandardMaterial).color.set(0xff0000);
+    this.cdr.detectChanges();
+  }
 
+  initThree(): void {
     //Parte de la camara
     const fov: number = 75;
-    const aspectRatio : number = window.innerWidth / window.innerHeight;
+    const aspectRatio: number = window.innerWidth / window.innerHeight;
     const near: number = 0.1;
     const far: number = 1000;
     this.camera = new THREE.PerspectiveCamera(fov, aspectRatio, near, far);
@@ -70,7 +84,7 @@ export class Model3d implements AfterViewInit {
     const widthRenderer: number = 1200;
     const heightRenderer: number = 700;
     this.renderer = new THREE.WebGLRenderer({antialias: true});
-    this.renderer.setSize(widthRenderer, heightRenderer); //
+    this.renderer.setSize(widthRenderer, heightRenderer);
     this.container.nativeElement.appendChild(this.renderer.domElement);
 
     //----------------------------
@@ -94,14 +108,14 @@ export class Model3d implements AfterViewInit {
     const axesHelper = new THREE.AxesHelper(10);
     this.scene.add(axesHelper);
       // malla
-    const gridHelper = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff)
+    const gridHelper = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
     this.scene.add(gridHelper);
 
     // cargue de texturas iniciales
     this.textureLoader = new THREE.TextureLoader();
 
     // cesped
-      this.initGrass();
+    this.initGrass();
 
     //--------------------------------
 
@@ -112,8 +126,10 @@ export class Model3d implements AfterViewInit {
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
 
-
-    this.renderer.domElement.addEventListener('click', (event) => {
+    this.renderer.domElement.addEventListener('click', (event: MouseEvent) => {
+      if (!this.cubeSelectionService.isRaycasterActive()) {
+        return;
+      }
 
       const rect = this.renderer.domElement.getBoundingClientRect();
 
@@ -127,13 +143,13 @@ export class Model3d implements AfterViewInit {
         return obj.object instanceof THREE.Mesh && obj.object.geometry.type === 'BoxGeometry';
       });
 
-      if (cubeHit) { this.selectCube(cubeHit.object as THREE.Mesh); }
-
-    })
-
+      if (cubeHit) {
+        this.selectCube(cubeHit.object as THREE.Mesh);
+      }
+    });
   }
 
-  initGrass(){
+  initGrass(): void {
     const grassTexture = this.textureLoader.load(this.textures.grass.default);
     grassTexture.wrapS = THREE.RepeatWrapping;
     grassTexture.wrapT = THREE.RepeatWrapping;
@@ -149,7 +165,7 @@ export class Model3d implements AfterViewInit {
     this.scene.add(ground);
   }
 
-  initConcrete() :THREE.MeshStandardMaterial{
+  initConcrete(): THREE.MeshStandardMaterial {
     const concreteTexture = this.textureLoader.load(this.textures.concrete.default);
     concreteTexture.wrapS = THREE.RepeatWrapping;
     concreteTexture.wrapT = THREE.RepeatWrapping;
@@ -160,14 +176,14 @@ export class Model3d implements AfterViewInit {
     return material;
   }
 
-  buildCube(x:number,z:number){
+  buildCube(x: number, z: number): void {
     const geometry = new THREE.BoxGeometry(1, 1, 5);
     const cube = new THREE.Mesh(geometry, this.initConcrete());
     cube.position.set(x, 0.5, z);
     this.scene.add(cube);
   }
 
-  crearBloqueDesdeSeleccion() {
+  crearBloqueDesdeSeleccion(): void {
     if (!this.selectedCube) return;
 
     const geometry = new THREE.BoxGeometry(1,1,1);
@@ -184,7 +200,7 @@ export class Model3d implements AfterViewInit {
     this.scene.add(newCube);
   }
 
-  updateButtonPosition() {
+  updateButtonPosition(): void {
     if (!this.selectedCube) return;
 
     const vector = this.selectedCube.position.clone();
@@ -200,10 +216,10 @@ export class Model3d implements AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  animate = () => {
+  animate = (): void => {
     requestAnimationFrame(this.animate);
     this.controls.update();
-    this.renderer.render(this.scene,this.camera);
+    this.renderer.render(this.scene, this.camera);
     this.updateButtonPosition();
   }
 }

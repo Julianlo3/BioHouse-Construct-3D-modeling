@@ -1,7 +1,7 @@
 <div id="actionButons">
   <button class="main-button" (click)="toggleMenu()"><img src="/assets/options-Icon.svg" alt="Opciones"></button>
   <ul class="dropdown-menu" [class.open]="isMenuOpen">
-    <li><button class="dropdown-button"><img src="/assets/brick-Icon.svg" alt="ladrillo"></button></li>
+    <li id="AddBrick"><button class="dropdown-button" [class.active]="isAddBrickActive" (click)="onAddBrick()"><img src="/assets/brick-Icon.svg" alt="ladrillo"></button></li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
     <li><button class="dropdown-button"><img src="/assets/wall-Icon.svg" alt="muro"></button></li>
