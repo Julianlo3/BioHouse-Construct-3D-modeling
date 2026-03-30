@@ -1,10 +1,11 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import * as THREE from "three";
 import { OrbitControls }  from "three/examples/jsm/controls/OrbitControls.js";
+import { ActionsModel } from '../actions-model/actions-model';
 
 @Component({
   selector: 'app-model3d',
-  imports: [],
+  imports: [ActionsModel],
   templateUrl: './model3d.html',
   styleUrl: './model3d.css',
 })

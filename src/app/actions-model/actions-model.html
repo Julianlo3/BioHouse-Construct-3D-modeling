@@ -1,0 +1,26 @@
+<div id="actionButons">
+  <button class="main-button" (click)="toggleMenu()"><img src="/assets/options-Icon.svg" alt="Opciones"></button>
+  <ul class="dropdown-menu" [class.open]="isMenuOpen">
+    <li><button class="dropdown-button"><img src="/assets/brick-Icon.svg" alt="ladrillo"></button></li>
+    <img src="/assets/next-Icon.svg" alt="next">
+    <img src="/assets/next-Icon.svg" alt="next">
+    <li><button class="dropdown-button"><img src="/assets/wall-Icon.svg" alt="muro"></button></li>
+    <img src="/assets/next-Icon.svg" alt="next">
+    <img src="/assets/next-Icon.svg" alt="next">
+    <li><button class="dropdown-button"><img src="/assets/door-Icon.svg" alt="puerta"></button></li>
+    <img src="/assets/next-Icon.svg" alt="next">
+    <img src="/assets/next-Icon.svg" alt="next">
+    <li><button class="dropdown-button"><img src="/assets/floor-Icon.svg" alt="piso"></button></li>
+    <img src="/assets/next-Icon.svg" alt="next">
+    <img src="/assets/next-Icon.svg" alt="next">
+    <li><button class="dropdown-button"><img src="/assets/house-Icon.svg" alt="casa"></button></li>
+  </ul> 
+</div>
+
+<div id="tutorials">
+    <button class="dropdown-button" (click)="toggleTutorials()"><img src="/assets/help-Icon.svg" alt="Información"></button>
+</div>
+
+<div id="camare">
+    <button id="InfoControls" class="dropdown-button" (click)="toggleCamera()"><img src="/assets/camera-Icon.svg" alt="Camera"></button>
+</div>
