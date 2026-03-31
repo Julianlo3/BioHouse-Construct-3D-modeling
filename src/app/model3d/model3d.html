@@ -3,15 +3,16 @@
     <div id="tools">
     </div>
   @if (selectedCube) {
-    <div
-      id="floatingButton"
-      [style.left.px]="buttonX"
-      [style.top.px]="buttonY"
-    >
-      <button (click)="crearBloqueDesdeSeleccion()">+</button>
-    </div>
+    @for (btn of activeButtons; track $index) {
+      @if (btn.visible) {
+        <div
+          class="floatingButton"
+          [style.left.px]="btn.screenX"
+          [style.top.px]="btn.screenY"
+        >
+          <button (click)="crearBloqueDesdeSeleccion(btn.offsetX, btn.offsetZ, btn.rotateY)">+</button>
+        </div>
+      }
+    }
   }
-
-  </div>
-
-
+</div>
