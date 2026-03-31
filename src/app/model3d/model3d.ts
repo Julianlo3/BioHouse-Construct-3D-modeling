@@ -18,15 +18,11 @@ export class Model3d implements AfterViewInit {
   //diccionario de texturas
   public textures = TEXTURE_MAP;
 
-  // posicion boton agregar cubo
-  buttonX = 0;
-  buttonY = 0;
-
   // Div donde se creará el render de la vision 3D
   @ViewChild('modelado', { static: false })
   private container!: ElementRef;
-  // Variables necesarias para THREE
 
+  // Variables necesarias para THREE
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
@@ -34,6 +30,9 @@ export class Model3d implements AfterViewInit {
   private controls!: OrbitControls; // Movimiento del mouse
   private raycaster!: THREE.Raycaster; // Necesario para saber que objeto se selecciona
   private mouse!: THREE.Vector2;
+
+  //logica para botones en bloque
+  activeButtons: { screenX: number, screenY: number, offsetX: number, offsetZ: number, rotateY: boolean, visible: boolean }[] = [];
 
   // Logica de cubo seleccionado
   selectedCube: THREE.Mesh | null = null;
@@ -166,35 +165,95 @@ export class Model3d implements AfterViewInit {
     this.scene.add(cube);
   }
 
-  crearBloqueDesdeSeleccion() {
+  crearBloqueDesdeSeleccion(offsetX: number, offsetZ: number, rotateY: boolean) {
     if (!this.selectedCube) return;
 
-    const geometry = new THREE.BoxGeometry(1,1,1);
-    const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
-
+    const geometry = new THREE.BoxGeometry(1, 1, 5);
+    const material = this.initConcrete();
     const newCube = new THREE.Mesh(geometry, material);
 
+    // Si el botón indica que debe rotar, lo giramos 90 grados en el eje Y
+    if (rotateY) {
+      newCube.rotation.y = Math.PI / 2;
+    }
+
     newCube.position.set(
-      this.selectedCube.position.x + 1,
+      this.selectedCube.position.x + offsetX,
       this.selectedCube.position.y,
-      this.selectedCube.position.z
+      this.selectedCube.position.z + offsetZ
     );
 
     this.scene.add(newCube);
   }
 
   updateButtonPosition() {
-    if (!this.selectedCube) return;
+    if (!this.selectedCube) {
+      this.activeButtons = [];
+      return;
+    }
 
-    const vector = this.selectedCube.position.clone();
-    vector.y += 1;
+    const pos = this.selectedCube.position;
+    const isRotated = Math.abs(this.selectedCube.rotation.y) > 0.1;
 
-    vector.project(this.camera);
+    let buttonConfigs = [];
 
-    const rect = this.container.nativeElement.getBoundingClientRect();
+    if (!isRotated) {
+      // --- BLOQUE NORMAL (Largo en el eje Z - Adelante/Atrás) ---
+      buttonConfigs = [
+        // 1. Continuar en línea recta (Adelante / Atrás)
+        // Offset de 5 unidades para encajar punta con punta
+        { offsetX: 0, offsetZ: 5, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z + 2.8) },
+        { offsetX: 0, offsetZ: -5, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z - 2.8) },
 
-    this.buttonX = (vector.x * 0.5 + 0.5) * rect.width;
-    this.buttonY = (-vector.y * 0.5 + 0.5) * rect.height;
+        // 2. Esquinas Derechas (Punta delantera y Punta trasera)
+        // Offset X: 3 (0.5 mitad del actual + 2.5 mitad del nuevo)
+        // Offset Z: 2 y -2 para alinear los bordes en las puntas
+        { offsetX: 3, offsetZ: 2, rotateY: true, btnPos: new THREE.Vector3(pos.x + 1.2, pos.y, pos.z + 2.0) },
+        { offsetX: 3, offsetZ: -2, rotateY: true, btnPos: new THREE.Vector3(pos.x + 1.2, pos.y, pos.z - 2.0) },
+
+        // 3. Esquinas Izquierdas (Punta delantera y Punta trasera)
+        { offsetX: -3, offsetZ: 2, rotateY: true, btnPos: new THREE.Vector3(pos.x - 1.2, pos.y, pos.z + 2.0) },
+        { offsetX: -3, offsetZ: -2, rotateY: true, btnPos: new THREE.Vector3(pos.x - 1.2, pos.y, pos.z - 2.0) },
+      ];
+    } else {
+      // --- BLOQUE ROTADO (Largo en el eje X - Izquierda/Derecha) ---
+      buttonConfigs = [
+        // 1. Continuar en línea recta (Derecha / Izquierda)
+        { offsetX: 5, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x + 2.8, pos.y, pos.z) },
+        { offsetX: -5, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x - 2.8, pos.y, pos.z) },
+
+        // 2. Esquinas Frontales (Punta derecha y Punta izquierda)
+        // Offset X: 2 y -2 para alinear los bordes
+        // Offset Z: 3 (0.5 mitad del actual + 2.5 mitad del nuevo hacia adelante)
+        { offsetX: 2, offsetZ: 3, rotateY: false, btnPos: new THREE.Vector3(pos.x + 2.0, pos.y, pos.z + 1.2) },
+        { offsetX: -2, offsetZ: 3, rotateY: false, btnPos: new THREE.Vector3(pos.x - 2.0, pos.y, pos.z + 1.2) },
+
+        // 3. Esquinas Traseras (Punta derecha y Punta izquierda)
+        { offsetX: 2, offsetZ: -3, rotateY: false, btnPos: new THREE.Vector3(pos.x + 2.0, pos.y, pos.z - 1.2) },
+        { offsetX: -2, offsetZ: -3, rotateY: false, btnPos: new THREE.Vector3(pos.x - 2.0, pos.y, pos.z - 1.2) },
+      ];
+    }
+
+    const width = this.renderer.domElement.clientWidth; // Debería ser 1200
+    const height = this.renderer.domElement.clientHeight; // Debería ser 700
+
+    // Proyectamos los 6 botones a la pantalla 2D
+    this.activeButtons = buttonConfigs.map(config => {
+      const vector = config.btnPos.clone();
+      vector.project(this.camera);
+
+      // 3. CORRECCIÓN CLAVE: Si vector.z > 1, el punto está a espaldas de la cámara.
+      const isVisible = vector.z < 1;
+
+      return {
+        screenX: (vector.x * 0.5 + 0.5) * width,
+        screenY: (-vector.y * 0.5 + 0.5) * height,
+        offsetX: config.offsetX,
+        offsetZ: config.offsetZ,
+        rotateY: config.rotateY,
+        visible: isVisible // Guardamos si se debe mostrar o no
+      };
+    });
 
     this.cdr.detectChanges();
   }
