@@ -280,6 +280,64 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  construirMuros() {
+    const input = window.prompt('¿Cuántos bloques (metros) hacia arriba quieres construir?', '1');
+
+    // Si el usuario presiona "Cancelar" o cierra la ventana, detenemos la función
+    if (input === null) return;
+
+    // Convertimos el texto a un número entero
+    const niveles = parseInt(input, 10);
+
+    // Validamos que el usuario haya escrito un número válido y mayor a cero
+    if (isNaN(niveles) || niveles <= 0) {
+      window.alert('Por favor, ingresa un número válido mayor a 0.');
+      return;
+    }
+
+    // Ejecutamos la construcción la cantidad de veces que el usuario pidió
+    for (let i = 0; i < niveles; i++) {
+      this.levantarUnPiso();
+    }
+
+    // Actualizamos los botones por si había un cubo seleccionado
+    this.updateButtonPosition();
+  }
+
+  // 2. La lógica aislada de levantar una sola capa (tu código anterior adaptado)
+  levantarUnPiso() {
+    const bloquesActuales = this.scene.children.filter((obj) => {
+      return obj instanceof THREE.Mesh && obj.geometry.type === 'BoxGeometry';
+    }) as THREE.Mesh[];
+
+    const nuevosMuros: THREE.Mesh[] = [];
+
+
+    // comprobar existencia bloques arriba
+    bloquesActuales.forEach((bloque) => {
+      const existeArriba = bloquesActuales.some(b =>
+        Math.abs(b.position.x - bloque.position.x) < 0.1 &&
+        Math.abs(b.position.z - bloque.position.z) < 0.1 &&
+        Math.abs(b.position.y - (bloque.position.y + 1)) < 0.1
+      );
+
+      if (!existeArriba) {
+        const geometry = new THREE.BoxGeometry(1, 1, 5);
+        const material = this.initConcrete();
+        const nuevoMuro = new THREE.Mesh(geometry, material);
+
+        nuevoMuro.position.copy(bloque.position);
+        nuevoMuro.rotation.copy(bloque.rotation);
+        nuevoMuro.position.y += 1; // Lo subimos 1 unidad
+        this.numBlocks ++;
+        nuevosMuros.push(nuevoMuro);
+      }
+    });
+
+    // agregar bloques para crear pared
+    nuevosMuros.forEach(muro => this.scene.add(muro));
+  }
+
   animate = (): void => {
     requestAnimationFrame(this.animate);
     this.controls.update();
@@ -287,46 +345,4 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.updateButtonPosition();
   }
 
-  construirMuros() {
-    // 1. Buscamos TODOS los bloques que existen actualmente en la escena
-    const bloquesActuales = this.scene.children.filter((obj) => {
-      return obj instanceof THREE.Mesh && obj.geometry.type === 'BoxGeometry';
-    }) as THREE.Mesh[];
-
-    // Usamos un arreglo temporal para no modificar la escena mientras iteramos
-    const nuevosMuros: THREE.Mesh[] = [];
-
-    // 2. Revisamos cada bloque para construir uno encima
-    bloquesActuales.forEach((bloque) => {
-
-      // Lógica de seguridad: Comprobamos si YA existe un bloque justo arriba de este.
-      // Usamos < 0.1 en lugar de === para evitar errores de decimales en 3D.
-      const existeArriba = bloquesActuales.some(b =>
-        Math.abs(b.position.x - bloque.position.x) < 0.1 &&
-        Math.abs(b.position.z - bloque.position.z) < 0.1 &&
-        Math.abs(b.position.y - (bloque.position.y + 1)) < 0.1 // +1 porque es la altura del bloque
-      );
-
-      // Si no hay nada arriba, construimos el muro
-      if (!existeArriba) {
-        const geometry = new THREE.BoxGeometry(1, 1, 5);
-        const material = this.initConcrete();
-        const nuevoMuro = new THREE.Mesh(geometry, material);
-
-        // Copiamos la posición exacta y la rotación del bloque base
-        nuevoMuro.position.copy(bloque.position);
-        nuevoMuro.rotation.copy(bloque.rotation);
-
-        // Y lo subimos 1 unidad en el eje Y
-        nuevoMuro.position.y += 1;
-
-        nuevosMuros.push(nuevoMuro);
-      }
-    });
-
-    // 3. Añadimos todos los nuevos muros a la escena de golpe
-    nuevosMuros.forEach(muro => this.scene.add(muro));
-
-    this.updateButtonPosition();
-  }
 }
