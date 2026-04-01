@@ -15,6 +15,9 @@ import { Subscription } from 'rxjs';
 })
 export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
+  //numero de bloques
+  protected numBlocks: number = 0;
+
   constructor(private cdr: ChangeDetectorRef, private cubeSelectionService: CubeSelectionService) {}
 
   private subscription: Subscription = new Subscription();
@@ -60,7 +63,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
   selectCube(cube: THREE.Mesh): void {
     if (this.selectedCube) {
-      (this.selectedCube.material as THREE.MeshStandardMaterial).color.set(0xaaaaaa);
+      (this.selectedCube.material as THREE.MeshStandardMaterial).color.set(0xffffff);
     }
     this.selectedCube = cube;
     (cube.material as THREE.MeshStandardMaterial).color.set(0xff0000);
@@ -104,10 +107,10 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
     // Guias
       // Desde centro X, Y, Z
-    const axesHelper = new THREE.AxesHelper(10);
+    const axesHelper = new THREE.AxesHelper(20);
     this.scene.add(axesHelper);
       // malla
-    const gridHelper = new THREE.GridHelper(10, 10, 0xffffff, 0xffffff);
+    const gridHelper = new THREE.GridHelper(100, 100, 0xffffff, 0xffffff);
     this.scene.add(gridHelper);
 
     // cargue de texturas iniciales
@@ -119,7 +122,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     //--------------------------------
 
     // construir cubo inicial
-    this.buildCube(0,0);
+    this.buildCube(0.5,2.5);
 
     // necesario para seleccion cubo mouse
     this.mouse = new THREE.Vector2();
@@ -180,6 +183,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     const cube = new THREE.Mesh(geometry, this.initConcrete());
     cube.position.set(x, 0.5, z);
     this.scene.add(cube);
+    this.numBlocks ++;
   }
 
   crearBloqueDesdeSeleccion(offsetX: number, offsetZ: number, rotateY: boolean) {
@@ -201,6 +205,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     );
 
     this.scene.add(newCube);
+    this.numBlocks ++
   }
 
   updateButtonPosition() {
@@ -279,6 +284,49 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     requestAnimationFrame(this.animate);
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
+    this.updateButtonPosition();
+  }
+
+  construirMuros() {
+    // 1. Buscamos TODOS los bloques que existen actualmente en la escena
+    const bloquesActuales = this.scene.children.filter((obj) => {
+      return obj instanceof THREE.Mesh && obj.geometry.type === 'BoxGeometry';
+    }) as THREE.Mesh[];
+
+    // Usamos un arreglo temporal para no modificar la escena mientras iteramos
+    const nuevosMuros: THREE.Mesh[] = [];
+
+    // 2. Revisamos cada bloque para construir uno encima
+    bloquesActuales.forEach((bloque) => {
+
+      // Lógica de seguridad: Comprobamos si YA existe un bloque justo arriba de este.
+      // Usamos < 0.1 en lugar de === para evitar errores de decimales en 3D.
+      const existeArriba = bloquesActuales.some(b =>
+        Math.abs(b.position.x - bloque.position.x) < 0.1 &&
+        Math.abs(b.position.z - bloque.position.z) < 0.1 &&
+        Math.abs(b.position.y - (bloque.position.y + 1)) < 0.1 // +1 porque es la altura del bloque
+      );
+
+      // Si no hay nada arriba, construimos el muro
+      if (!existeArriba) {
+        const geometry = new THREE.BoxGeometry(1, 1, 5);
+        const material = this.initConcrete();
+        const nuevoMuro = new THREE.Mesh(geometry, material);
+
+        // Copiamos la posición exacta y la rotación del bloque base
+        nuevoMuro.position.copy(bloque.position);
+        nuevoMuro.rotation.copy(bloque.rotation);
+
+        // Y lo subimos 1 unidad en el eje Y
+        nuevoMuro.position.y += 1;
+
+        nuevosMuros.push(nuevoMuro);
+      }
+    });
+
+    // 3. Añadimos todos los nuevos muros a la escena de golpe
+    nuevosMuros.forEach(muro => this.scene.add(muro));
+
     this.updateButtonPosition();
   }
 }
