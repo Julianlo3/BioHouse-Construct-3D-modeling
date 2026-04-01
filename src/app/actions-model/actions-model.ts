@@ -11,6 +11,8 @@ import { Subscription } from 'rxjs';
 export class ActionsModel implements OnInit, OnDestroy {
   isMenuOpen = false;
   isAddBrickActive = false;
+  isWallActive = false;
+  isDecorationsActive = false;
   private subscription: Subscription = new Subscription();
 
   constructor(private cubeSelectionService: CubeSelectionService) {}
@@ -19,6 +21,11 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.subscription.add(
       this.cubeSelectionService.raycasterActive$.subscribe(active => {
         this.isAddBrickActive = active;
+      })
+    );
+    this.subscription.add(
+      this.cubeSelectionService.decorationActive$.subscribe(active => {
+        this.isDecorationsActive = active;
       })
     );
   }
@@ -41,6 +48,24 @@ export class ActionsModel implements OnInit, OnDestroy {
     } else {
       // Activar raycaster
       this.cubeSelectionService.requestSelectCube();
+      document.body.classList.add('mouse-red-cursor');
+    }
+  }
+
+  buildWall(){
+    this.cubeSelectionService.requestConstruirMuro();
+  }
+
+  onAddDecoration() {
+    const isCurrentlyActive = this.cubeSelectionService.isDecorationActive();
+
+    if (isCurrentlyActive) {
+      // Desactivar decoraciones
+      this.cubeSelectionService.setDecorationActive(false);
+      document.body.classList.remove('mouse-red-cursor');
+    } else {
+      // Activar decoraciones
+      this.cubeSelectionService.requestAddDecoration();
       document.body.classList.add('mouse-red-cursor');
     }
   }

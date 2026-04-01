@@ -6,6 +6,19 @@ import { TEXTURE_MAP } from '../constants/textures/textures.constant';
 import { ActionsModel } from '../actions-model/actions-model';
 import { CubeSelectionService } from '../services/cube-selection.service';
 import { Subscription } from 'rxjs';
+// Importamos el GLTFLoader para cargar modelos 3D
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+// Constantes de rutas de modelos
+const MODEL_PATHS = {
+  door: '/assets/models/PuertaMadera.glb'
+} as const;
+
+// Constantes de dimensiones
+const DOOR_DIMENSIONS = {
+  width: 1,    // 1 metro de ancho
+  height: 2,   // 2 metros de largo/altura
+} as const;
 
 @Component({
   selector: 'app-model3d',
@@ -37,6 +50,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   private controls!: OrbitControls; // Movimiento del mouse
   private raycaster!: THREE.Raycaster; // Necesario para saber que objeto se selecciona
   private mouse!: THREE.Vector2;
+  private gltfLoader = new GLTFLoader(); // Para cargar modelos 3D en formato GLTF/GLB
 
   //logica para botones en bloque
   activeButtons: { screenX: number, screenY: number, offsetX: number, offsetZ: number, rotateY: boolean, visible: boolean }[] = [];
@@ -44,10 +58,24 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   // Logica de cubo seleccionado
   selectedCube: THREE.Mesh | null = null;
 
+  // Mesh de selección para decoraciones (cuadro verde)
+  private selectionMesh: THREE.Mesh | null = null;
+  private isAddingDecoration: boolean = false;
+
   ngOnInit(): void {
     this.subscription.add(
       this.cubeSelectionService.selectCube$.subscribe(() => {
         this.cubeSelectionService.setRaycasterActive(true);
+      })
+    );
+    this.subscription.add(
+      this.cubeSelectionService.construirMuro$.subscribe(() => {
+        this.construirMuros();
+      })
+    );
+    this.subscription.add(
+      this.cubeSelectionService.addDecoration$.subscribe(() => {
+        this.startAddingDecoration('door');
       })
     );
   }
@@ -127,6 +155,13 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     // necesario para seleccion cubo mouse
     this.mouse = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
+
+    // Listener para movimiento del mouse (para actualizar posición del ghost preview)
+    this.renderer.domElement.addEventListener('mousemove', (event: MouseEvent) => {
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    });
 
     this.renderer.domElement.addEventListener('click', (event: MouseEvent) => {
       if (!this.cubeSelectionService.isRaycasterActive()) {
@@ -338,9 +373,134 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     nuevosMuros.forEach(muro => this.scene.add(muro));
   }
 
+  loadModel(modelPath: string): Promise<THREE.Group> {
+    return new Promise((resolve, reject) => {
+      this.gltfLoader.load(
+        modelPath,
+        (gltf) => {
+          const model = gltf.scene;
+          
+          resolve(model);
+        },
+        undefined,
+        (error) => {
+          console.error('Error cargando modelo:', error);
+          reject(error);
+        }
+      );
+    });
+  }
+
+  async startAddingDecoration(modelType: string) {
+    this.isAddingDecoration = true;
+    this.cubeSelectionService.setDecorationActive(true);
+    
+    // Crear mesh de selección (cuadro verde de 1x1)
+    const geometry = new THREE.PlaneGeometry(1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
+    this.selectionMesh = new THREE.Mesh(geometry, material);
+    this.selectionMesh.rotation.x = -Math.PI / 2; // Horizontal
+    this.selectionMesh.position.set(0.5, 0.05, 0.5); // Posición inicial en el centro de un cuadro de la grilla
+    this.scene.add(this.selectionMesh);
+    
+    // Agregar listener para teclas (W,S,A,D para mover, L para agregar, ESC para cancelar)
+    const keyListener = (event: KeyboardEvent) => {
+      if (!this.isAddingDecoration) return;
+      
+      if (event.key === 'Escape' || event.key === 'Esc') {
+        this.cancelAddingDecoration();
+      } else if (event.key === 'l' || event.key === 'L') {
+        this.addDecorationToScene(modelType);
+      } else if (event.key === 'w' || event.key === 'W') {
+        this.moveSelection(0, 1); // Arriba (+Z)
+      } else if (event.key === 's' || event.key === 'S') {
+        this.moveSelection(0, -1); // Abajo (-Z)
+      } else if (event.key === 'a' || event.key === 'A') {
+        this.moveSelection(-1, 0); // Izquierda (-X)
+      } else if (event.key === 'd' || event.key === 'D') {
+        this.moveSelection(1, 0); // Derecha (+X)
+      }
+    };
+    
+    window.addEventListener('keydown', keyListener);
+    
+    // Guardar referencia para poder remover después
+    (this as any).decorationKeyListener = keyListener;
+  }
+
+  moveSelection(dx: number, dz: number) {
+    if (!this.selectionMesh) return;
+    
+    // Mover en incrementos de 1 unidad (tamaño del cuadro)
+    this.selectionMesh.position.x += dx;
+    this.selectionMesh.position.z += dz;
+  }
+
+  scaleModelToDimensions(model: THREE.Group, width: number, height: number) {
+    // Calcular bounding box del modelo
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    
+    // Calcular escala necesaria
+    const scaleX = width / size.x;
+    const scaleY = height / size.y;
+    const scaleZ = 1; // Mantener profundidad
+    
+    // Aplicar escala
+    model.scale.set(scaleX, scaleY, scaleZ);
+    
+    // Centrar el modelo
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center);
+  }
+
+  addDecorationToScene(modelType: string) {
+    if (!this.selectionMesh) return;
+    
+    // Guardar la posición antes de remover el mesh
+    const targetPosition = this.selectionMesh.position.clone();
+    
+    // Remover el mesh de selección y cancelar
+    this.cancelAddingDecoration();
+    
+    const modelPath = MODEL_PATHS[modelType as keyof typeof MODEL_PATHS];
+    
+    // Cargar un nuevo modelo para agregarlo a la escena
+    this.gltfLoader.load(modelPath, (gltf) => {
+      const newDecoration = gltf.scene;
+      
+      // Escalar el modelo a las dimensiones deseadas
+      this.scaleModelToDimensions(newDecoration, DOOR_DIMENSIONS.width, DOOR_DIMENSIONS.height);
+      
+      // Posicionar en la ubicación guardada
+      newDecoration.position.copy(targetPosition);
+      newDecoration.position.y = 0; // Ajustar Y si es necesario
+      newDecoration.position.z = 0.1; // Sobre la grilla
+      
+      this.scene.add(newDecoration);
+    });
+  }
+
+  cancelAddingDecoration() {
+    if (this.selectionMesh) {
+      this.scene.remove(this.selectionMesh);
+      this.selectionMesh = null;
+    }
+    
+    this.isAddingDecoration = false;
+    this.cubeSelectionService.setDecorationActive(false);
+    document.body.classList.remove('mouse-red-cursor');
+    
+    // Remover listeners
+    if ((this as any).decorationKeyListener) {
+      window.removeEventListener('keydown', (this as any).decorationKeyListener);
+    }
+  }
+
   animate = (): void => {
     requestAnimationFrame(this.animate);
     this.controls.update();
+    
     this.renderer.render(this.scene, this.camera);
     this.updateButtonPosition();
   }

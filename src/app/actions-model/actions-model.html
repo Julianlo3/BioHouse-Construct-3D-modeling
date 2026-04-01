@@ -4,10 +4,10 @@
     <li id="AddBrick"><button class="dropdown-button" [class.active]="isAddBrickActive" (click)="onAddBrick()"><img src="/assets/brick-Icon.svg" alt="ladrillo"></button></li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
-    <li><button class="dropdown-button"><img src="/assets/wall-Icon.svg" alt="muro"></button></li>
+    <li id="Wall"><button class="dropdown-button" [class.active]="isWallActive" (click)="buildWall()"><img src="/assets/wall-Icon.svg" alt="muro"></button></li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
-    <li><button class="dropdown-button"><img src="/assets/door-Icon.svg" alt="puerta"></button></li>
+    <li id="decoration"><button class="dropdown-button" [class.active]="isDecorationsActive" (click)="onAddDecoration()"><img src="/assets/door-Icon.svg" alt="puerta"></button></li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
     <li><button class="dropdown-button"><img src="/assets/floor-Icon.svg" alt="piso"></button></li>
