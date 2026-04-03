@@ -471,20 +471,20 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         },
         // ── Esquinas frontales (punta derecha e izquierda) ────────────────
         {
-          offsetX: esquinaFrontal, offsetZ: esquinaLateral, rotateY: false,
+          offsetX: 0.28, offsetZ: 1.44, rotateY: false,
           btnPos: new THREE.Vector3(pos.x + esquinaFrontal, pos.y, pos.z + esquinaLateral)
         },
         {
-          offsetX: -esquinaFrontal, offsetZ: esquinaLateral, rotateY: false,
+          offsetX: -2.32, offsetZ: 1.44, rotateY: false,
           btnPos: new THREE.Vector3(pos.x - esquinaFrontal, pos.y, pos.z + esquinaLateral)
         },
         // ── Esquinas traseras (punta derecha e izquierda) ─────────────────
         {
-          offsetX: esquinaFrontal, offsetZ: -esquinaLateral, rotateY: false,
+          offsetX: 0.28, offsetZ: -1.96, rotateY: false,
           btnPos: new THREE.Vector3(pos.x + esquinaFrontal, pos.y, pos.z - esquinaLateral)
         },
         {
-          offsetX: -esquinaFrontal, offsetZ: -esquinaLateral, rotateY: false,
+          offsetX: -2.32, offsetZ: -1.96, rotateY: false,
           btnPos: new THREE.Vector3(pos.x - esquinaFrontal, pos.y, pos.z - esquinaLateral)
         },
       ];
@@ -522,7 +522,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.moldeBloque = gltf.scene;
         this.moldeBloque.scale.set(40, 40, 40);
 
-        // TEMPORAL - solo para medir, borra después
         this.moldeBloque.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(this.moldeBloque);
         const center = new THREE.Vector3();
@@ -530,8 +529,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         box.getCenter(center);
         box.getSize(size);
         box.getCenter(center);
-        console.log('📦 Tamaño X:', size.x, '| Y:', size.y, '| Z:', size.z);
-        console.log('📍 Centro X:', center.x, '| Y:', center.y, '| Z:', center.z);
+        console.log('Tamaño X:', size.x, '| Y:', size.y, '| Z:', size.z);
+        console.log('Centro X:', center.x, '| Y:', center.y, '| Z:', center.z);
 
 
         const materialConcreto = this.initConcrete();
@@ -547,8 +546,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
         this.moldeBloque.name = 'muro';
 
-        // FIX #3 — Calculamos la altura real del bloque tras aplicar la escala
-        //const box        = new THREE.Box3().setFromObject(this.moldeBloque);
         this.alturaBloque = box.max.y - box.min.y;
         console.log(`Altura real del bloque: ${this.alturaBloque}`);
 
@@ -564,8 +561,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   // LOOP DE ANIMACIÓN
   // =========================================================================
 
-  // FIX #5 — animate() ya NO llama a updateButtonPosition() en cada frame.
-  //          Eso ahora lo hace el listener 'change' de OrbitControls.
   animate = (): void => {
     requestAnimationFrame(this.animate);
     this.controls?.update();
