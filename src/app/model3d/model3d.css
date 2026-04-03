@@ -1,29 +1,41 @@
 #divModelado {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  width: 100%;
+  height: 700px;
+  overflow: hidden;
+  display: block; /* flex causaba problemas con el canvas absoluto */
 }
 
-.info{
+#divModelado canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+app-actions-model {
+  position: relative;
+  z-index: 10;
+}
+
+.info {
   margin-top: 80px;
   margin-left: 20px;
   font-size: 30px;
 }
 
-#tools{
-  position:absolute;
+#tools {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
   color: white;
-}
-
-#crearBloque{
-  border: 3px solid yellowgreen;
 }
 
 .floatingButton {
   position: absolute;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  z-index: 20;
   pointer-events: auto;
 }
 
@@ -35,5 +47,31 @@
   color: white;
   border: none;
   cursor: pointer;
-  box-shadow: 0px 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.floatingButton button:hover {
+  background: #32cd32;
+  transform: scale(1.15);
+}
+
+.slider-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #333;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 8px;
+  margin-left: 10px;
+  border: 2px solid #555;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+.slider-container input[type='range'] {
+  cursor: pointer;
+  accent-color: #4caf50;
 }

@@ -1,7 +1,19 @@
  <div #modelado id="divModelado"  >
-    <app-actions-model></app-actions-model>
     <div id="tools">
+      <app-actions-model></app-actions-model>
       <p class="info" id="numBlock"># de bloques: {{numBlocks}}</p>
+      <button class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition" type="button" (click)="construirMuros()">Levantar pared</button>
+      <div class="slider-container">
+        <label>Opacidad:</label>
+        <input
+          type="range"
+          min="0.2"
+          max="1.0"
+          step="0.1"
+          value="1"
+          (input)="cambiarOpacidad($event)"
+        >
+      </div>
     </div>
   @if (selectedCube) {
     @for (btn of activeButtons; track $index) {
