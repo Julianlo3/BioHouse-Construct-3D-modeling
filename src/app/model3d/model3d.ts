@@ -463,29 +463,29 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         // ── Continuar recto ──────────────────────────────────────────────
         {
           offsetX: 3.0, offsetZ: 0, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + halfZ + halfZ, pos.y, pos.z)
+          btnPos: new THREE.Vector3(pos.x + halfZ , pos.y, pos.z - 1)
         },
         {
           offsetX: -3.0, offsetZ: 0, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x - halfZ - halfZ, pos.y, pos.z)
+          btnPos: new THREE.Vector3(pos.x - halfZ - 1, pos.y, pos.z - 1)
         },
         // ── Esquinas frontales (punta derecha e izquierda) ────────────────
         {
           offsetX: 0.28, offsetZ: 1.44, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + esquinaFrontal, pos.y, pos.z + esquinaLateral)
+          btnPos: new THREE.Vector3(pos.x + 1, pos.y, pos.z)
         },
         {
           offsetX: -2.32, offsetZ: 1.44, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x - esquinaFrontal, pos.y, pos.z + esquinaLateral)
+          btnPos: new THREE.Vector3(pos.x -1.8, pos.y, pos.z)
         },
         // ── Esquinas traseras (punta derecha e izquierda) ─────────────────
         {
           offsetX: 0.28, offsetZ: -1.96, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + esquinaFrontal, pos.y, pos.z - esquinaLateral)
+          btnPos: new THREE.Vector3(pos.x + 1, pos.y, pos.z - 1.8)
         },
         {
           offsetX: -2.32, offsetZ: -1.96, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x - esquinaFrontal, pos.y, pos.z - esquinaLateral)
+          btnPos: new THREE.Vector3(pos.x - 2, pos.y, pos.z - 2)
         },
       ];
     }
