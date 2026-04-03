@@ -17,6 +17,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
   //numero de bloques
   protected numBlocks: number = 0;
+  protected opacity: number = 1.0;
 
   constructor(private cdr: ChangeDetectorRef, private cubeSelectionService: CubeSelectionService) {}
 
@@ -122,7 +123,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     //--------------------------------
 
     // construir cubo inicial
-    this.buildCube(0.5,2.5);
+    this.buildCube(0.3,1.5);
 
     // necesario para seleccion cubo mouse
     this.mouse = new THREE.Vector2();
@@ -172,16 +173,36 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     concreteTexture.wrapS = THREE.RepeatWrapping;
     concreteTexture.wrapT = THREE.RepeatWrapping;
     concreteTexture.repeat.set(1, 1);
+
     const material = new THREE.MeshStandardMaterial({
-      map: concreteTexture
+      map: concreteTexture,
+      transparent: true,
+      opacity: this.opacity
     });
+
     return material;
   }
 
+  cambiarOpacidad(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.opacity = parseFloat(input.value);
+
+    this.scene.children.forEach((obj) => {
+      if (obj instanceof THREE.Mesh && obj.geometry.type === 'BoxGeometry') {
+        const material = obj.material as THREE.MeshStandardMaterial;
+
+        material.transparent = true;
+        material.opacity = this.opacity;
+
+        material.needsUpdate = true;
+      }
+    });
+  }
+
   buildCube(x: number, z: number): void {
-    const geometry = new THREE.BoxGeometry(1, 1, 5);
+    const geometry = new THREE.BoxGeometry(0.6, 0.5, 3);
     const cube = new THREE.Mesh(geometry, this.initConcrete());
-    cube.position.set(x, 0.5, z);
+    cube.position.set(x, 0.25, z);
     this.scene.add(cube);
     this.numBlocks ++;
   }
@@ -189,7 +210,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   crearBloqueDesdeSeleccion(offsetX: number, offsetZ: number, rotateY: boolean) {
     if (!this.selectedCube) return;
 
-    const geometry = new THREE.BoxGeometry(1, 1, 5);
+    const geometry = new THREE.BoxGeometry(0.6, 0.5, 3);
     const material = this.initConcrete();
     const newCube = new THREE.Mesh(geometry, material);
 
@@ -223,36 +244,36 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       // --- BLOQUE NORMAL (Largo en el eje Z - Adelante/Atrás) ---
       buttonConfigs = [
         // 1. Continuar en línea recta (Adelante / Atrás)
-        // Offset de 5 unidades para encajar punta con punta
-        { offsetX: 0, offsetZ: 5, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z + 2.8) },
-        { offsetX: 0, offsetZ: -5, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z - 2.8) },
+        // Offset de 3 unidades para encajar punta con punta
+        { offsetX: 0, offsetZ: 3, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z + 2.8) },
+        { offsetX: 0, offsetZ: -3, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z - 2.8) },
 
         // 2. Esquinas Derechas (Punta delantera y Punta trasera)
         // Offset X: 3 (0.5 mitad del actual + 2.5 mitad del nuevo)
         // Offset Z: 2 y -2 para alinear los bordes en las puntas
-        { offsetX: 3, offsetZ: 2, rotateY: true, btnPos: new THREE.Vector3(pos.x + 1.2, pos.y, pos.z + 2.0) },
-        { offsetX: 3, offsetZ: -2, rotateY: true, btnPos: new THREE.Vector3(pos.x + 1.2, pos.y, pos.z - 2.0) },
+        { offsetX: 1.2, offsetZ: 1.8, rotateY: true, btnPos: new THREE.Vector3(pos.x + 1.2, pos.y, pos.z + 2.0) },
+        { offsetX: 1.2, offsetZ: -1.8, rotateY: true, btnPos: new THREE.Vector3(pos.x + 1.2, pos.y, pos.z - 2.0) },
 
         // 3. Esquinas Izquierdas (Punta delantera y Punta trasera)
-        { offsetX: -3, offsetZ: 2, rotateY: true, btnPos: new THREE.Vector3(pos.x - 1.2, pos.y, pos.z + 2.0) },
-        { offsetX: -3, offsetZ: -2, rotateY: true, btnPos: new THREE.Vector3(pos.x - 1.2, pos.y, pos.z - 2.0) },
+        { offsetX: -1.2, offsetZ: 1.8, rotateY: true, btnPos: new THREE.Vector3(pos.x - 1.2, pos.y, pos.z + 2.0) },
+        { offsetX: -1.2, offsetZ: -1.8, rotateY: true, btnPos: new THREE.Vector3(pos.x - 1.2, pos.y, pos.z - 2.0) },
       ];
     } else {
       // --- BLOQUE ROTADO (Largo en el eje X - Izquierda/Derecha) ---
       buttonConfigs = [
         // 1. Continuar en línea recta (Derecha / Izquierda)
-        { offsetX: 5, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x + 2.8, pos.y, pos.z) },
-        { offsetX: -5, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x - 2.8, pos.y, pos.z) },
+        { offsetX: 3, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x + 2.8, pos.y, pos.z) },
+        { offsetX: -3, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x - 2.8, pos.y, pos.z) },
 
         // 2. Esquinas Frontales (Punta derecha y Punta izquierda)
         // Offset X: 2 y -2 para alinear los bordes
         // Offset Z: 3 (0.5 mitad del actual + 2.5 mitad del nuevo hacia adelante)
-        { offsetX: 2, offsetZ: 3, rotateY: false, btnPos: new THREE.Vector3(pos.x + 2.0, pos.y, pos.z + 1.2) },
-        { offsetX: -2, offsetZ: 3, rotateY: false, btnPos: new THREE.Vector3(pos.x - 2.0, pos.y, pos.z + 1.2) },
+        { offsetX: 1.2, offsetZ: 1.8, rotateY: false, btnPos: new THREE.Vector3(pos.x + 2.0, pos.y, pos.z + 1.2) },
+        { offsetX: -1.2, offsetZ: 1.8, rotateY: false, btnPos: new THREE.Vector3(pos.x - 2.0, pos.y, pos.z + 1.2) },
 
         // 3. Esquinas Traseras (Punta derecha y Punta izquierda)
-        { offsetX: 2, offsetZ: -3, rotateY: false, btnPos: new THREE.Vector3(pos.x + 2.0, pos.y, pos.z - 1.2) },
-        { offsetX: -2, offsetZ: -3, rotateY: false, btnPos: new THREE.Vector3(pos.x - 2.0, pos.y, pos.z - 1.2) },
+        { offsetX: 1.2, offsetZ: -1.8, rotateY: false, btnPos: new THREE.Vector3(pos.x + 2.0, pos.y, pos.z - 1.2) },
+        { offsetX: -1.2, offsetZ: -1.8, rotateY: false, btnPos: new THREE.Vector3(pos.x - 2.0, pos.y, pos.z - 1.2) },
       ];
     }
 
