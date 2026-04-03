@@ -16,8 +16,8 @@ const MODEL_PATHS = {
 
 // Constantes de dimensiones
 const DOOR_DIMENSIONS = {
-  width: 1,    // 1 metro de ancho
-  height: 2,   // 2 metros de largo/altura
+  width: 4,    // 1 metro de ancho
+  height: 8,   // 2 metros de largo/altura
 } as const;
 
 @Component({
@@ -60,8 +60,10 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
   // Mesh de selección para decoraciones (cuadro verde)
   private selectionMesh: THREE.Mesh | null = null;
+  private decorationTargetPosition: THREE.Vector3 | null = null;
   private isAddingDecoration: boolean = false;
 
+  //Suscripcion al canel de comunicacion con los botones
   ngOnInit(): void {
     this.subscription.add(
       this.cubeSelectionService.selectCube$.subscribe(() => {
@@ -80,6 +82,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     );
   }
 
+  //Cancelar suscripcion
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
@@ -165,6 +168,12 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
     this.renderer.domElement.addEventListener('click', (event: MouseEvent) => {
       if (!this.cubeSelectionService.isRaycasterActive()) {
+        // Deseleccionar el cubo si está seleccionado
+        if (this.selectedCube) {
+          (this.selectedCube.material as THREE.MeshStandardMaterial).color.set(0xffffff);
+          this.selectedCube = null;
+          this.cdr.detectChanges();
+        }
         return;
       }
 
@@ -181,7 +190,15 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       });
 
       if (cubeHit) {
-        this.selectCube(cubeHit.object as THREE.Mesh);
+        const hitCube = cubeHit.object as THREE.Mesh;
+        this.selectCube(hitCube);
+
+        if (this.isAddingDecoration && this.cubeSelectionService.isRaycasterActive()) {
+          this.decorationTargetPosition = hitCube.position.clone();
+          if (this.selectionMesh) {
+            this.selectionMesh.position.copy(this.decorationTargetPosition);
+          }
+        }
       }
     });
   }
@@ -244,6 +261,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   }
 
   updateButtonPosition() {
+    if (this.isAddingDecoration) {
+      this.activeButtons = [];
+      return;
+    }
+
     if (!this.selectedCube) {
       this.activeButtons = [];
       return;
@@ -393,14 +415,28 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
   async startAddingDecoration(modelType: string) {
     this.isAddingDecoration = true;
+    this.activeButtons = [];
     this.cubeSelectionService.setDecorationActive(true);
+
+    if (this.selectedCube) {
+      this.selectCube(this.selectedCube);
+      this.decorationTargetPosition = this.selectedCube.position.clone();
+    } else {
+      this.decorationTargetPosition = null;
+    }
     
     // Crear mesh de selección (cuadro verde de 1x1)
-    const geometry = new THREE.PlaneGeometry(1, 1);
+    const geometry = new THREE.PlaneGeometry(4, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
     this.selectionMesh = new THREE.Mesh(geometry, material);
     this.selectionMesh.rotation.x = -Math.PI / 2; // Horizontal
-    this.selectionMesh.position.set(0.5, 0.05, 0.5); // Posición inicial en el centro de un cuadro de la grilla
+
+    if (this.decorationTargetPosition) {
+      this.selectionMesh.position.copy(this.decorationTargetPosition);
+    } else {
+      this.selectionMesh.position.set(0.5, 0.05, 0.5); // Posición inicial en el centro de un cuadro de la grilla
+    }
+
     this.scene.add(this.selectionMesh);
     
     // Agregar listener para teclas (W,S,A,D para mover, L para agregar, ESC para cancelar)
@@ -456,6 +492,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
   addDecorationToScene(modelType: string) {
     if (!this.selectionMesh) return;
+    this.cubeSelectionService.setRaycasterActive(false);
     
     // Guardar la posición antes de remover el mesh
     const targetPosition = this.selectionMesh.position.clone();
@@ -474,11 +511,10 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       
       // Posicionar en la ubicación guardada
       newDecoration.position.copy(targetPosition);
-      newDecoration.position.y = 0; // Ajustar Y si es necesario
-      newDecoration.position.z = 0.1; // Sobre la grilla
       
       this.scene.add(newDecoration);
     });
+    this.cubeSelectionService.setRaycasterActive(false);
   }
 
   cancelAddingDecoration() {

@@ -64,6 +64,10 @@ export class ActionsModel implements OnInit, OnDestroy {
       this.cubeSelectionService.setDecorationActive(false);
       document.body.classList.remove('mouse-red-cursor');
     } else {
+      // Activar raycaster si estaba desactivado
+      if (!this.cubeSelectionService.isRaycasterActive()) {
+        this.cubeSelectionService.setRaycasterActive(true);
+      }
       // Activar decoraciones
       this.cubeSelectionService.requestAddDecoration();
       document.body.classList.add('mouse-red-cursor');
