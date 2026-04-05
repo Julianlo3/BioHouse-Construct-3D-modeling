@@ -17,7 +17,7 @@ export class CubeSelectionService {
   private decorationActiveSubject = new BehaviorSubject<boolean>(false);
   decorationActive$ = this.decorationActiveSubject.asObservable();
 
-  private addDecoration = new Subject<void>();
+  private addDecoration = new Subject<string>();
   addDecoration$ = this.addDecoration.asObservable();
 
   requestSelectCube(): void {
@@ -44,7 +44,7 @@ export class CubeSelectionService {
     return this.decorationActiveSubject.value;
   }
 
-  requestAddDecoration(): void {
-    this.addDecoration.next();
+  requestAddDecoration(decorationType: string): void {
+    this.addDecoration.next(decorationType);
   }
 }

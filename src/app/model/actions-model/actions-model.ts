@@ -13,6 +13,7 @@ export class ActionsModel implements OnInit, OnDestroy {
   isAddBrickActive = false;
   isWallActive = false;
   isDecorationsActive = false;
+  isDecorationSubMenuOpen = false;
   private subscription: Subscription = new Subscription();
 
   constructor(private cubeSelectionService: CubeSelectionService) {}
@@ -56,21 +57,27 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.cubeSelectionService.requestConstruirMuro();
   }
 
-  onAddDecoration() {
+  toggleDecorationSubMenu() {
+    this.isDecorationSubMenuOpen = !this.isDecorationSubMenuOpen;
+  }
+
+  onAddDecoration(decorationType: string) {
     const isCurrentlyActive = this.cubeSelectionService.isDecorationActive();
 
     if (isCurrentlyActive) {
       // Desactivar decoraciones
       this.cubeSelectionService.setDecorationActive(false);
       document.body.classList.remove('mouse-red-cursor');
+      this.isDecorationSubMenuOpen = false;
     } else {
       // Activar raycaster si estaba desactivado
       if (!this.cubeSelectionService.isRaycasterActive()) {
         this.cubeSelectionService.setRaycasterActive(true);
       }
-      // Activar decoraciones
-      this.cubeSelectionService.requestAddDecoration();
+      // Activar decoraciones con el tipo especificado
+      this.cubeSelectionService.requestAddDecoration(decorationType);
       document.body.classList.add('mouse-red-cursor');
+      this.isDecorationSubMenuOpen = false;
     }
   }
 

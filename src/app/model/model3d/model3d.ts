@@ -20,13 +20,19 @@ import { MODEL_MAP } from '../../constants/models/models.constant';
 
 // Constantes de rutas de modelos
 const MODEL_PATHS = {
-  door: '/assets/models/PuertaMadera.glb'
+  door: '/assets/models/PuertaMadera.glb',
+  window: '/assets/models/Ventana.glb',
 } as const;
 
 // Constantes de dimensiones
 const DOOR_DIMENSIONS = {
-  width: 4,    // 1 metro de ancho
-  height: 8,   // 2 metros de largo/altura
+  width: 3,    // 1 metro de ancho
+  height: 6,   // 2 metros de largo/altura
+} as const;
+
+const WINDOW_DIMENSIONS = {
+  width: 3,    // 1 metro de ancho
+  height: 3,   // 1 metro de largo/altura
 } as const;
 
 @Component({
@@ -109,8 +115,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       })
     );
     this.subscription.add(
-      this.cubeSelectionService.addDecoration$.subscribe(() => {
-        this.startAddingDecoration('door');
+      this.cubeSelectionService.addDecoration$.subscribe((decorationType: string) => {
+        this.startAddingDecoration(decorationType);
       })
     );
   }
@@ -223,6 +229,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.selectCube(selectedGroup);
 
         if (this.isAddingDecoration && this.cubeSelectionService.isRaycasterActive()) {
+          // Actualizar posición cuando se selecciona un cubo durante la decoración
           this.decorationTargetPosition = selectedGroup.position.clone();
           if (this.selectionMesh) {
             this.selectionMesh.position.copy(this.decorationTargetPosition);
@@ -627,7 +634,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     }
     
     // Crear mesh de selección (cuadro verde de 1x1)
-    const geometry = new THREE.PlaneGeometry(4, 1);
+    const geometry = new THREE.PlaneGeometry(3, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
     this.selectionMesh = new THREE.Mesh(geometry, material);
     this.selectionMesh.rotation.x = -Math.PI / 2; // Horizontal
@@ -679,7 +686,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   }
 
   scaleModelToDimensions(model: THREE.Group, width: number, height: number) {
-    // Calcular bounding box del modelo
+    // Calcular bounding box del modelo antes de escalar
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
     
@@ -690,10 +697,12 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     
     // Aplicar escala
     model.scale.set(scaleX, scaleY, scaleZ);
+    model.updateMatrixWorld(true);
     
-    // Centrar el modelo
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center);
+    // Recálcular el centro con la escala aplicada y centrar el modelo
+    const scaledBox = new THREE.Box3().setFromObject(model);
+    const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+    model.position.sub(scaledCenter);
   }
 
   addDecorationToScene(modelType: string) {
@@ -713,13 +722,67 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.gltfLoader.load(modelPath, (gltf) => {
       const newDecoration = gltf.scene;
       
-      // Escalar el modelo a las dimensiones deseadas
-      this.scaleModelToDimensions(newDecoration, DOOR_DIMENSIONS.width, DOOR_DIMENSIONS.height);
+      // Seleccionar dimensiones según el tipo de decoración
+      let dimensions = modelType === 'door' ? DOOR_DIMENSIONS : WINDOW_DIMENSIONS;
       
-      // Posicionar en la ubicación guardada
-      newDecoration.position.copy(targetPosition);
+      
+      // Escalar el modelo a las dimensiones deseadas
+      this.scaleModelToDimensions(newDecoration, dimensions.width, dimensions.height);
+      
+      // Posicionar en la ubicación guardada (con altura igual al cubo seleccionado)
+      newDecoration.position.set(
+        targetPosition.x,
+        this.selectedCube ? this.selectedCube.position.y : targetPosition.y,
+        targetPosition.z
+      );
 
-      if (!(this.numRotation%2 === 0)){
+      // Eliminar cubos que se solapan con la decoración
+      if (this.selectedCube) {
+        const decorationHeight = dimensions.height;
+        const baseY = this.selectedCube.position.y;
+        const cubosTieneQueBorrados = this.scene.children.filter((obj) => {
+          if (obj.name === 'muro') {
+            // Verificar si está en la misma posición X, Z (con mayor tolerancia)
+            const sameX = Math.abs(obj.position.x - this.selectedCube!.position.x) < 0.75;
+            const sameZ = Math.abs(obj.position.z - this.selectedCube!.position.z) < 0.75;
+            
+            // Verificar si está ARRIBA del cubo seleccionado (eje Y)
+            const isAbove = obj.position.y >= baseY;
+            
+            // Verificar si está dentro de la altura de la decoración
+            const isWithinDecorationHeight = obj.position.y < baseY + decorationHeight;
+            
+            return sameX && sameZ && isAbove && isWithinDecorationHeight;
+          }
+          return false;
+        });
+
+        // Remover los cubos de la escena
+        cubosTieneQueBorrados.forEach((cubo) => {
+          this.scene.remove(cubo);
+          this.numBlocks--;
+        });
+      }
+
+      if (modelType === 'window') {
+        newDecoration.position.y -= 2;
+        newDecoration.position.z -= 1;
+        if(!(this.numRotation%2 === 0)){
+          newDecoration.position.z += 0.5;
+        }else{
+        newDecoration.position.x -= 0.5;
+        }
+      }
+
+      if (modelType === 'door') {
+          if (!(this.numRotation % 2 === 0)) {
+            newDecoration.position.x += 1;
+          } else {
+            newDecoration.position.z += 0.7;
+          }
+      }
+
+      if (!(this.numRotation % 2 === 0)){
 
         this.numRotation = 0;
         // Copiar solo la rotación en Z del preview

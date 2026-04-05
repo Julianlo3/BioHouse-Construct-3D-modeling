@@ -7,7 +7,13 @@
     <li id="Wall"><button class="dropdown-button" [class.active]="isWallActive" (click)="buildWall()"><img src="/assets/wall-Icon.svg" alt="muro"></button></li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
-    <li id="decoration"><button class="dropdown-button" [class.active]="isDecorationsActive" (click)="onAddDecoration()"><img src="/assets/door-Icon.svg" alt="puerta"></button></li>
+    <li id="decoration" class="has-submenu">
+      <button class="dropdown-button" [class.active]="isDecorationsActive" (click)="toggleDecorationSubMenu()"><img src="/assets/door-Icon.svg" alt="puerta"></button>
+      <ul class="decoration-submenu" [class.open]="isDecorationSubMenuOpen">
+        <li><button class="decoration-button" (click)="onAddDecoration('door')">Puerta</button></li>
+        <li><button class="decoration-button" (click)="onAddDecoration('window')">Ventana</button></li>
+      </ul>
+    </li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
     <li><button class="dropdown-button"><img src="/assets/floor-Icon.svg" alt="piso"></button></li>

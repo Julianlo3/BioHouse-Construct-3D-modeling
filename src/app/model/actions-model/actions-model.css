@@ -113,3 +113,70 @@
 .mouse-red-cursor {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='red'/%3E%3C/svg%3E"), auto !important;
 }
+
+.has-submenu {
+  position: relative;
+}
+
+.decoration-submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  list-style: none;
+  padding: 0.5vh;
+  margin: 0.5vh 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  background-color: #2d6a4f;
+  border: 2px solid #1b4332;
+  border-radius: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  min-width: 120px;
+  z-index: 1001;
+}
+
+.decoration-submenu.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.decoration-button {
+  padding: 0.8vh 1.2vh;
+  background-color: #74c69d;
+  border: 1px solid #1b4332;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #1b4332;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  animation: slideInDecoration 0.3s ease-out forwards;
+}
+
+.decoration-submenu.open .decoration-button:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.decoration-submenu.open .decoration-button:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.decoration-button:hover {
+  background-color: #52b788;
+  border-color: #1b4332;
+}
+
+@keyframes slideInDecoration {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
