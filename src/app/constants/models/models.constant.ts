@@ -1,5 +1,6 @@
-// En tu archivo de constantes
 export const MODEL_MAP = {
-  block: "models/Bloqueplas.glb"
+  block: "models/Bloqueplas.glb",
+  blockMM: "models/Bloqueplas 2 mm.glb",
+  blockCM: "models/Bloqueplasv 2 CM.glb",
 } as const;
 

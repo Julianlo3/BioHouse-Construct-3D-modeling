@@ -169,7 +169,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
     // ── Escena ────────────────────────────────────────────────────────────
     this.scene = new THREE.Scene();
-    const ambientLight = new THREE.AmbientLight(0xffffff, 3);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 4);
     this.scene.add(ambientLight);
 
     // ── Controles de órbita ───────────────────────────────────────────────
@@ -293,16 +293,24 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   }
 
   initConcrete(): THREE.MeshStandardMaterial {
-    const concreteTexture = this.textureLoader.load(this.textures.concrete.default);
-    concreteTexture.wrapS = THREE.RepeatWrapping;
-    concreteTexture.wrapT = THREE.RepeatWrapping;
-    concreteTexture.repeat.set(1, 1);
+    const baseColor = this.textureLoader.load(this.textures.concreteDetail.color);
+    const normalMap = this.textureLoader.load(this.textures.concreteDetail.gl);
+    const roughnessMap = this.textureLoader.load(this.textures.concreteDetail.roughness);
+    const aoMap = this.textureLoader.load(this.textures.concreteDetail.ambientOcc);
 
-    return new THREE.MeshStandardMaterial({
-      map:         concreteTexture,
+    const material = new THREE.MeshStandardMaterial({
+      map: baseColor,
+      normalMap: normalMap,
+      roughnessMap: roughnessMap,
+      aoMap: aoMap,
       transparent: true,
-      opacity:     this.opacity,
+      opacity: this.opacity,
+      // Ajustes opcionales para realismo:
+      roughness: 1, // 1 es totalmente mate (concreto)
+      metalness: 0  // 0 porque no es metal
     });
+
+    return material;
   }
 
   cambiarOpacidad(event: Event): void {
@@ -632,7 +640,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     } else {
       this.decorationTargetPosition = null;
     }
-    
+
     // Crear mesh de selección (cuadro verde de 1x1)
     const geometry = new THREE.PlaneGeometry(3, 1);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
@@ -646,11 +654,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     }
 
     this.scene.add(this.selectionMesh);
-    
+
     // Agregar listener para teclas (W,S,A,D para mover, L para agregar, ESC para cancelar)
     const keyListener = (event: KeyboardEvent) => {
       if (!this.isAddingDecoration) return;
-      
+
       if (event.key === 'Escape' || event.key === 'Esc') {
         this.cancelAddingDecoration();
       } else if (event.key === 'l' || event.key === 'L') {
@@ -670,16 +678,16 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         }
       }
     };
-    
+
     window.addEventListener('keydown', keyListener);
-    
+
     // Guardar referencia para poder remover después
     (this as any).decorationKeyListener = keyListener;
   }
 
   moveSelection(dx: number, dz: number) {
     if (!this.selectionMesh) return;
-    
+
     // Mover en incrementos de 1 unidad (tamaño del cuadro)
     this.selectionMesh.position.x += dx;
     this.selectionMesh.position.z += dz;
@@ -689,16 +697,16 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     // Calcular bounding box del modelo antes de escalar
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
-    
+
     // Calcular escala necesaria
     const scaleX = width / size.x;
     const scaleY = height / size.y;
     const scaleZ = 1; // Mantener profundidad
-    
+
     // Aplicar escala
     model.scale.set(scaleX, scaleY, scaleZ);
     model.updateMatrixWorld(true);
-    
+
     // Recálcular el centro con la escala aplicada y centrar el modelo
     const scaledBox = new THREE.Box3().setFromObject(model);
     const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
@@ -708,27 +716,27 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   addDecorationToScene(modelType: string) {
     if (!this.selectionMesh) return;
     this.cubeSelectionService.setRaycasterActive(false);
-    
+
     // Guardar la posición y rotación antes de remover el mesh
     const targetPosition = this.selectionMesh.position.clone();
     const targetRotation = this.selectionMesh.rotation.clone();
-    
+
     // Remover el mesh de selección y cancelar
     this.cancelAddingDecoration();
-    
+
     const modelPath = MODEL_PATHS[modelType as keyof typeof MODEL_PATHS];
-    
+
     // Cargar un nuevo modelo para agregarlo a la escena
     this.gltfLoader.load(modelPath, (gltf) => {
       const newDecoration = gltf.scene;
-      
+
       // Seleccionar dimensiones según el tipo de decoración
       let dimensions = modelType === 'door' ? DOOR_DIMENSIONS : WINDOW_DIMENSIONS;
-      
-      
+
+
       // Escalar el modelo a las dimensiones deseadas
       this.scaleModelToDimensions(newDecoration, dimensions.width, dimensions.height);
-      
+
       // Posicionar en la ubicación guardada (con altura igual al cubo seleccionado)
       newDecoration.position.set(
         targetPosition.x,
@@ -745,13 +753,13 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
             // Verificar si está en la misma posición X, Z (con mayor tolerancia)
             const sameX = Math.abs(obj.position.x - this.selectedCube!.position.x) < 0.75;
             const sameZ = Math.abs(obj.position.z - this.selectedCube!.position.z) < 0.75;
-            
+
             // Verificar si está ARRIBA del cubo seleccionado (eje Y)
             const isAbove = obj.position.y >= baseY;
-            
+
             // Verificar si está dentro de la altura de la decoración
             const isWithinDecorationHeight = obj.position.y < baseY + decorationHeight;
-            
+
             return sameX && sameZ && isAbove && isWithinDecorationHeight;
           }
           return false;
@@ -787,14 +795,14 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.numRotation = 0;
         // Copiar solo la rotación en Z del preview
         newDecoration.rotation.z = Math.PI / 2;
-      
+
         // Aplicar rotación en Y para levantarlo
         newDecoration.rotation.y = Math.PI / 2;
 
         // Aplicar rotación en X para que quede vertical
         newDecoration.rotation.x = -Math.PI / 2;
       }
-      
+
       this.scene.add(newDecoration);
     });
     this.cubeSelectionService.setRaycasterActive(false);
@@ -805,11 +813,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       this.scene.remove(this.selectionMesh);
       this.selectionMesh = null;
     }
-    
+
     this.isAddingDecoration = false;
     this.cubeSelectionService.setDecorationActive(false);
     document.body.classList.remove('mouse-red-cursor');
-    
+
     // Remover listeners
     if ((this as any).decorationKeyListener) {
       window.removeEventListener('keydown', (this as any).decorationKeyListener);
