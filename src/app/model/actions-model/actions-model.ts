@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CubeSelectionService } from '../services/cube-selection.service';
+import { CubeSelectionService } from '../../services/cube-selection.service';
 import { Subscription } from 'rxjs';
 
 @Component({

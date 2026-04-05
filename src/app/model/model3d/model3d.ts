@@ -9,13 +9,13 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { TEXTURE_MAP } from '../constants/textures/textures.constant';
+import { TEXTURE_MAP } from '../../constants/textures/textures.constant';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import { ActionsModel } from '../actions-model/actions-model';
-import { CubeSelectionService } from '../services/cube-selection.service';
+import { CubeSelectionService } from '../../services/cube-selection.service';
 import { Subscription } from 'rxjs';
-import { MODEL_MAP } from '../constants/models/models.constant';
+import { MODEL_MAP } from '../../constants/models/models.constant';
 
 
 // Constantes de rutas de modelos
@@ -72,6 +72,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   private raycaster!: THREE.Raycaster; // Necesario para saber que objeto se selecciona
   private mouse!: THREE.Vector2;
   private gltfLoader = new GLTFLoader(); // Para cargar modelos 3D en formato GLTF/GLB
+  private numRotation = 0; // Contador de rotaciones para decoraciones
 
   // ─── Botones flotantes sobre el bloque seleccionado ───────────────────────
   activeButtons: {
@@ -195,7 +196,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       if (!this.cubeSelectionService.isRaycasterActive()) {
         // Deseleccionar el cubo si está seleccionado
         if (this.selectedCube) {
-          (this.selectedCube.material as THREE.MeshStandardMaterial).color.set(0xffffff);
+          this.selectedCube.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) {
+              (obj.material as THREE.MeshStandardMaterial).color.set(0xffffff);
+            }
+          });
           this.selectedCube = null;
           this.cdr.detectChanges();
         }
@@ -214,13 +219,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       );
 
       if (cubeHit) {
-        // FIX #2 — Subimos al grupo raíz (name === 'muro') en vez de usar la malla hija
-        this.selectCube(this.obtenerGrupoRaiz(cubeHit.object));
-        const hitCube = cubeHit.object as THREE.Mesh;
-        this.selectCube(hitCube);
+        const selectedGroup = this.obtenerGrupoRaiz(cubeHit.object);
+        this.selectCube(selectedGroup);
 
         if (this.isAddingDecoration && this.cubeSelectionService.isRaycasterActive()) {
-          this.decorationTargetPosition = hitCube.position.clone();
+          this.decorationTargetPosition = selectedGroup.position.clone();
           if (this.selectionMesh) {
             this.selectionMesh.position.copy(this.decorationTargetPosition);
           }
@@ -611,23 +614,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     );
   }
 
-   loadModel(modelPath: string): Promise<THREE.Group> {
-    return new Promise((resolve, reject) => {
-      this.gltfLoader.load(
-        modelPath,
-        (gltf) => {
-          const model = gltf.scene;
-          
-          resolve(model);
-        },
-        undefined,
-        (error) => {
-          console.error('Error cargando modelo:', error);
-          reject(error);
-        }
-      );
-    });
-  }
 
   async startAddingDecoration(modelType: string) {
     this.isAddingDecoration = true;
@@ -635,7 +621,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.cubeSelectionService.setDecorationActive(true);
 
     if (this.selectedCube) {
-      this.selectCube(this.selectedCube);
       this.decorationTargetPosition = this.selectedCube.position.clone();
     } else {
       this.decorationTargetPosition = null;
@@ -671,6 +656,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.moveSelection(-1, 0); // Izquierda (-X)
       } else if (event.key === 'd' || event.key === 'D') {
         this.moveSelection(1, 0); // Derecha (+X)
+      } else if (event.key === 'q' || event.key === 'Q') {
+        if (this.selectionMesh) {
+          this.numRotation++;
+          this.selectionMesh.rotateZ(Math.PI / 2);
+        }
       }
     };
     
@@ -710,8 +700,9 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     if (!this.selectionMesh) return;
     this.cubeSelectionService.setRaycasterActive(false);
     
-    // Guardar la posición antes de remover el mesh
+    // Guardar la posición y rotación antes de remover el mesh
     const targetPosition = this.selectionMesh.position.clone();
+    const targetRotation = this.selectionMesh.rotation.clone();
     
     // Remover el mesh de selección y cancelar
     this.cancelAddingDecoration();
@@ -727,6 +718,19 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       
       // Posicionar en la ubicación guardada
       newDecoration.position.copy(targetPosition);
+
+      if (!(this.numRotation%2 === 0)){
+
+        this.numRotation = 0;
+        // Copiar solo la rotación en Z del preview
+        newDecoration.rotation.z = Math.PI / 2;
+      
+        // Aplicar rotación en Y para levantarlo
+        newDecoration.rotation.y = Math.PI / 2;
+
+        // Aplicar rotación en X para que quede vertical
+        newDecoration.rotation.x = -Math.PI / 2;
+      }
       
       this.scene.add(newDecoration);
     });
