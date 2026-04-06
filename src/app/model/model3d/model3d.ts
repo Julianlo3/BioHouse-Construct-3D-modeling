@@ -158,12 +158,10 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.renderer.shadowMap.enabled = true;
     this.container.nativeElement.appendChild(this.renderer.domElement);
 
-    // FIX #7 — Tamaño del renderer basado en el contenedor real, no hardcodeado
     this.ajustarRenderer();
     window.addEventListener('resize', () => this.ajustarRenderer());
 
     // ── Cámara ────────────────────────────────────────────────────────────
-    // FIX #7 — aspect ratio calculado en ajustarRenderer()
     this.camera = new THREE.PerspectiveCamera(75, this.getAspectRatio(), 0.1, 1000);
     this.camera.position.z = 5;
 
@@ -175,13 +173,15 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     // ── Controles de órbita ───────────────────────────────────────────────
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
-    // FIX #5 — updateButtonPosition sólo se ejecuta cuando la cámara se mueve,
-    //          NO en cada frame del animate().
     this.controls.addEventListener('change', () => this.updateButtonPosition());
 
     // ── Guías ─────────────────────────────────────────────────────────────
-    this.scene.add(new THREE.AxesHelper(20));
-    this.scene.add(new THREE.GridHelper(100, 100, 0xffffff, 0xffffff));
+    const axesHelper = new THREE.AxesHelper(5);
+    axesHelper.position.set(-0.2, 0, -1.5);
+    this.scene.add(axesHelper);
+    const gridHelper = new THREE.GridHelper(100, 100, 0xffffff, 0xffffff);
+    gridHelper.position.set(0.2, 0, 1.5);
+    this.scene.add(gridHelper);
 
     // ── Texturas ──────────────────────────────────────────────────────────
     this.textureLoader = new THREE.TextureLoader();
@@ -469,7 +469,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   // =========================================================================
   // BOTONES FLOTANTES
   // =========================================================================
-
   updateButtonPosition(): void {
     if (!this.selectedCube) {
       this.activeButtons = [];
@@ -480,88 +479,54 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     const pos       = this.selectedCube.position;
     const isRotated = Math.abs(this.selectedCube.rotation.y) > 0.1;
 
+    const L = 3.0;   // Largo total
+    const W = 0.4;   // Ancho total
+    const halfL = L / 2; // 1.5
+    const halfW = W / 2; // 0.2
 
+    // Offsets calculados para que las caras se toquen perfectamente
+    const offEsquinaX = halfL + halfW; // 1.7
+    const offEsquinaZ = halfL - halfW; // 1.3
 
-    // Dimensiones reales del bloque (de la consola)
-    const halfX = 0.20;  // Mitad del ancho  (0.40 / 2)
-    const halfZ = 1.50;  // Mitad del largo  (3.00 / 2)
+    // separacion botones
+    const separacionX = 0.5;
+    const separacionZ = 0.5;
 
-    // Offset para esquina = halfX + halfZ (los dos semilados se tocan)
-    const esquinaLateral = 2.32; // 1.70
-    const esquinaFrontal = 1.96; // 1.30
-    const posButtonTop = 0.65;
-
-    let buttonConfigs: {
-      offsetX: number;
-      offsetZ: number;
-      rotateY: boolean;
-      btnPos:  THREE.Vector3;
-    }[];
+    let buttonConfigs: any[] = [];
 
     if (!isRotated) {
-      // Bloque orientado en Z (largo hacia adelante/atrás)
+      // ── Bloque orientado en Z (Recto) ──
       buttonConfigs = [
-        // ── Continuar recto ──────────────────────────────────────────────
-        {
-          offsetX: 0, offsetZ: 3.0, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + posButtonTop , pos.y, pos.z + halfZ )
-        },
-        {
-          offsetX: 0, offsetZ: -3.0, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + posButtonTop , pos.y, pos.z - halfZ -1 )
-        },
-        // ── Esquinas derechas (punta delantera y trasera) ─────────────────
-        {
-          offsetX: 2.32 , offsetZ: 1.96, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + 1.5, pos.y, pos.z +1)
-        },
-        {
-          offsetX: esquinaLateral, offsetZ: -1.44, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + 1.5 , pos.y, pos.z - 1.8)
-        },
-        // ── Esquinas izquierdas (punta delantera y trasera) ───────────────
-        {
-          offsetX: -0.28, offsetZ: esquinaFrontal, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x , pos.y, pos.z + 1)
-        },
-        {
-          offsetX: -0.28, offsetZ: -1.44, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x , pos.y, pos.z - 1.8)
-        },
+        // Continuar recto (Z)
+        { offsetX: 0, offsetZ: L, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z + halfL + separacionZ) },
+        { offsetX: 0, offsetZ: -L, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z - halfL - separacionZ) },
+
+        // Esquinas Derechas (X+)
+        { offsetX: offEsquinaX, offsetZ: offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x + halfW + separacionX, pos.y, pos.z + halfL) },
+        { offsetX: offEsquinaX, offsetZ: -offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x + halfW + separacionX, pos.y, pos.z - halfL) },
+
+        // Esquinas Izquierdas (X-)
+        { offsetX: -offEsquinaX, offsetZ: offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x - halfW - separacionX, pos.y, pos.z + halfL) },
+        { offsetX: -offEsquinaX, offsetZ: -offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x - halfW - separacionX, pos.y, pos.z - halfL) },
       ];
     } else {
-      // Bloque rotado 90° (largo hacia izquierda/derecha, en X)
+      // ── Bloque orientado en X (Rotado) ──
       buttonConfigs = [
-        // ── Continuar recto ──────────────────────────────────────────────
-        {
-          offsetX: 3.0, offsetZ: 0, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + halfZ , pos.y, pos.z - 1)
-        },
-        {
-          offsetX: -3.0, offsetZ: 0, rotateY: true,
-          btnPos: new THREE.Vector3(pos.x - halfZ - 1, pos.y, pos.z - 1)
-        },
-        // ── Esquinas frontales (punta derecha e izquierda) ────────────────
-        {
-          offsetX: 0.28, offsetZ: 1.44, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + 1, pos.y, pos.z)
-        },
-        {
-          offsetX: -2.32, offsetZ: 1.44, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x -1.8, pos.y, pos.z)
-        },
-        // ── Esquinas traseras (punta derecha e izquierda) ─────────────────
-        {
-          offsetX: 0.28, offsetZ: -1.96, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + 1, pos.y, pos.z - 1.8)
-        },
-        {
-          offsetX: -2.32, offsetZ: -1.96, rotateY: false,
-          btnPos: new THREE.Vector3(pos.x - 2, pos.y, pos.z - 2)
-        },
+        // Continuar recto (X)
+        { offsetX: L, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x + halfL + separacionX, pos.y, pos.z) },
+        { offsetX: -L, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x - halfL - separacionZ, pos.y, pos.z) },
+
+        // Esquinas Frontales (Z+)
+        { offsetX: offEsquinaZ, offsetZ: offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x + halfL, pos.y, pos.z + halfW + separacionZ) },
+        { offsetX: -offEsquinaZ, offsetZ: offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x - halfL, pos.y, pos.z + halfW + separacionZ) },
+
+        // Esquinas Traseras (Z-)
+        { offsetX: offEsquinaZ, offsetZ: -offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x + halfL, pos.y, pos.z - halfW - separacionZ) },
+        { offsetX: -offEsquinaZ, offsetZ: -offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x - halfL, pos.y, pos.z - halfW - separacionZ) },
       ];
     }
 
+    // --- PROYECCIÓN A PANTALLA ---
     const width  = this.renderer.domElement.clientWidth;
     const height = this.renderer.domElement.clientHeight;
 
@@ -569,7 +534,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       const vector = config.btnPos.clone();
       vector.project(this.camera);
       return {
-        screenX: (vector.x *  0.5 + 0.5) * width,
+        screenX: (vector.x * 0.5 + 0.5) * width,
         screenY: (vector.y * -0.5 + 0.5) * height,
         offsetX: config.offsetX,
         offsetZ: config.offsetZ,
@@ -589,40 +554,55 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     const loader = new GLTFLoader();
 
     loader.load(
-      this.models.block,
+      this.models.blockMM,
       (gltf) => {
-        this.moldeBloque = gltf.scene;
-        this.moldeBloque.scale.set(40, 40, 40);
+        const modeloOriginal = gltf.scene;
 
-        this.moldeBloque.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(this.moldeBloque);
-        const center = new THREE.Vector3();
+        // 1. Medimos el modelo tal cual viene
+        const box = new THREE.Box3().setFromObject(modeloOriginal);
         const size = new THREE.Vector3();
-        box.getCenter(center);
+        const center = new THREE.Vector3();
         box.getSize(size);
         box.getCenter(center);
-        console.log('Tamaño X:', size.x, '| Y:', size.y, '| Z:', size.z);
-        console.log('Centro X:', center.x, '| Y:', center.y, '| Z:', center.z);
 
+        // 2. Calculamos la escala para que el largo sea 3
+        const largoObjetivo = 3;
+        const maxDim = Math.max(size.x, size.z); // Usamos X o Z para el largo, no Y
+        const escalaGral = largoObjetivo / maxDim;
 
+        // 3. ✨ EL TRUCO: Creamos un contenedor "limpio"
+        const contenedor = new THREE.Group();
+        contenedor.name = 'muro';
+
+        // 4. Aplicamos la corrección al modelo pero lo metemos al contenedor
+        modeloOriginal.scale.set(escalaGral, escalaGral, escalaGral);
+
+        // Centramos el modelo DENTRO del contenedor
+        modeloOriginal.position.x = -center.x * escalaGral;
+        modeloOriginal.position.z = -center.z * escalaGral;
+        modeloOriginal.position.y = -box.min.y * escalaGral; // La base queda en 0 del contenedor
+
+        contenedor.add(modeloOriginal);
+
+        // Guardamos el CONTENEDOR como nuestro molde
+        this.moldeBloque = contenedor;
+
+        // 5. Material y sombras (ahora sobre el contenedor)
         const materialConcreto = this.initConcrete();
-
         this.moldeBloque.traverse((hijo) => {
           if (hijo instanceof THREE.Mesh) {
-            hijo.material              = materialConcreto;
-            hijo.castShadow            = true;
-            hijo.receiveShadow         = true;
-            hijo.userData['isMuro']    = true;
+            hijo.material = materialConcreto;
+            hijo.castShadow = true;
+            hijo.receiveShadow = true;
+            hijo.userData['isMuro'] = true;
           }
         });
 
-        this.moldeBloque.name = 'muro';
+        // 6. Ahora las coordenadas 0,0 en buildCube serán el centro real del bloque
+        console.log('Modelo Normalizado y Encapsulado.');
 
-        this.alturaBloque = box.max.y - box.min.y;
-        console.log(`Altura real del bloque: ${this.alturaBloque}`);
-
-        console.log('Modelo GLB cargado y listo.');
-        this.buildCube(-0.44, 1.88);
+        // Prueba con (0,0) y verás que queda perfecto en el centro del eje
+        this.buildCube(0, 0);
       },
       undefined,
       (error) => console.error('Error al cargar el modelo:', error)
