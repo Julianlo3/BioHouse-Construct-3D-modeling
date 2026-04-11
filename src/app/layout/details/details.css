@@ -1,6 +1,6 @@
 /* --- Sección de Bienvenida --- */
 #welcom {
-  background-color: #1b4332;
+  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
   display: flex;
   align-items: center;
   padding: 40px 0;
@@ -15,7 +15,7 @@
 
 .text-content h2 {
   margin-bottom: 3%;
-  color: #74c69d;
+  color: #b4d435;
   font-size: larger;
 }
 
@@ -40,7 +40,7 @@
 }
 .examples-section h2 {
   font-size: 5vh; 
-  color: #1b4332; 
+  color: #2d9547; 
   margin-bottom: 4vh;
   font-weight: bold;
 }
@@ -66,7 +66,7 @@
 .cuadro-imagen {
   width: 28vh; 
   height: 28vh; 
-  border: 2px solid #1b4332; 
+  border: 2px solid #2d9547; 
   background-color: #f9f9f9;
   display: flex;
   align-items: center;
@@ -78,7 +78,7 @@
 
 .cuadro-imagen:hover {
   transform: scale(1.03);
-  border-color: #74c69d;
+  border-color: #b4d435;
 }
 
 .cuadro-imagen img {
@@ -90,6 +90,6 @@
 .ejemplo-texto {
   margin-top: 1.5vh;
   font-weight: bold;
-  color: #1b4332;
+  color: #2d9547;
   font-size: 1.1rem;
 }

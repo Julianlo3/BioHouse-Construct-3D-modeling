@@ -1,7 +1,7 @@
 #information {
   width: 100%;
   min-height: 100vh;
-  background-color: #1b4332;
+  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
   padding: 6vh 3vh;
   box-sizing: border-box;
   display: flex;
@@ -30,8 +30,8 @@
   width: 20%;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  background-color: #74c69d;
-  border: 0.3vh solid #1b4332;
+  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
+  border: 0.3vh solid #2d9547;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -64,9 +64,9 @@
 }
 
 .btn-create {
-  background-color: #74c69d;
-  color: #1b4332;
-  border: 0.3vh solid #1b4332;
+  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
+  color: #2d9547;
+  border: 0.3vh solid #2d9547;
   padding: 2.5vh 3vh;
   font-size: 2.2vh;
   border-radius: 0.5vh;
@@ -76,7 +76,7 @@
 }
 
 .btn-create:hover {
-  background-color: #1b4332;
+  background-color: #2d9547;
   color: #ffffff;
   transform: scale(1.05);
 }

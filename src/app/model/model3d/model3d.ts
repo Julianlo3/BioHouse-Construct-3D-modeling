@@ -633,8 +633,10 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       this.decorationTargetPosition = null;
     }
     
-    // Crear mesh de selección (cuadro verde de 1x1)
-    const geometry = new THREE.PlaneGeometry(3, 1);
+    const { width, depth } = this.getSelectedBlockDimensions();
+
+    // Crear mesh de selección con las dimensiones del bloque seleccionado
+    const geometry = new THREE.PlaneGeometry(width, depth);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 });
     this.selectionMesh = new THREE.Mesh(geometry, material);
     this.selectionMesh.rotation.x = -Math.PI / 2; // Horizontal
@@ -647,7 +649,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
     this.scene.add(this.selectionMesh);
     
-    // Agregar listener para teclas (W,S,A,D para mover, L para agregar, ESC para cancelar)
+    // Agregar listener para teclas (W,S,A,D para mover, L para agregar, ESC para cancelar, q para rotar)
     const keyListener = (event: KeyboardEvent) => {
       if (!this.isAddingDecoration) return;
       
@@ -655,14 +657,9 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.cancelAddingDecoration();
       } else if (event.key === 'l' || event.key === 'L') {
         this.addDecorationToScene(modelType);
-      } else if (event.key === 'w' || event.key === 'W') {
-        this.moveSelection(0, 1); // Arriba (+Z)
-      } else if (event.key === 's' || event.key === 'S') {
-        this.moveSelection(0, -1); // Abajo (-Z)
-      } else if (event.key === 'a' || event.key === 'A') {
-        this.moveSelection(-1, 0); // Izquierda (-X)
-      } else if (event.key === 'd' || event.key === 'D') {
-        this.moveSelection(1, 0); // Derecha (+X)
+      } else if (['w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(event.key)) {
+        const { dx, dz } = this.getMovementDeltaForKey(event.key);
+        this.moveSelection(dx, dz);
       } else if (event.key === 'q' || event.key === 'Q') {
         if (this.selectionMesh) {
           this.numRotation++;
@@ -675,6 +672,59 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     
     // Guardar referencia para poder remover después
     (this as any).decorationKeyListener = keyListener;
+  }
+
+  private normalizeCameraAngle(angle: number): number {
+    const normalized = angle % (2 * Math.PI);
+    return normalized < 0 ? normalized + 2 * Math.PI : normalized;
+  }
+
+  private getMovementDeltaForKey(key: string): { dx: number; dz: number } {
+    const angle = this.normalizeCameraAngle(this.controls.getAzimuthalAngle());
+
+    let forward = { dx: 0, dz: 1 };
+    let right = { dx: 1, dz: 0 };
+
+    if (angle >= Math.PI / 4 && angle < 3 * Math.PI / 4) {
+      forward = { dx: 1, dz: 0 };
+      right = { dx: 0, dz: -1 };
+    } else if (angle >= 3 * Math.PI / 4 && angle < 5 * Math.PI / 4) {
+      forward = { dx: 0, dz: -1 };
+      right = { dx: -1, dz: 0 };
+    } else if (angle >= 5 * Math.PI / 4 && angle < 7 * Math.PI / 4) {
+      forward = { dx: -1, dz: 0 };
+      right = { dx: 0, dz: 1 };
+    }
+
+    switch (key.toLowerCase()) {
+      case 'w':
+        return { dx: -forward.dx, dz: -forward.dz };
+      case 's':
+        return forward;
+      case 'a':
+        return { dx: -right.dx, dz: -right.dz };
+      case 'd':
+        return right;
+      default:
+        return { dx: 0, dz: 0 };
+    }
+  }
+
+  private getSelectedBlockDimensions(): { width: number; depth: number } {
+    if (!this.selectedCube) {
+      return { width: 3, depth: 1 };
+    }
+
+    const box = new THREE.Box3().setFromObject(this.selectedCube);
+    const size = box.getSize(new THREE.Vector3());
+
+    const width = size.x || 3;
+    const depth = size.z || 1;
+
+    return {
+      width: Math.max(width, 0.1),
+      depth: Math.max(depth, 0.1),
+    };
   }
 
   moveSelection(dx: number, dz: number) {
@@ -768,17 +818,20 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         newDecoration.position.y -= 2;
         newDecoration.position.z -= 1;
         if(!(this.numRotation%2 === 0)){
-          newDecoration.position.z += 0.5;
+          newDecoration.position.x += 0.4;
+          newDecoration.position.z += 0.6;
         }else{
-        newDecoration.position.x -= 0.5;
+        newDecoration.position.x -= 0.4;
         }
       }
 
       if (modelType === 'door') {
           if (!(this.numRotation % 2 === 0)) {
-            newDecoration.position.x += 1;
+            newDecoration.position.x += 0.5;
+            newDecoration.position.z -= 0.4;
           } else {
-            newDecoration.position.z += 0.7;
+            newDecoration.position.z += 0.5;
+            newDecoration.position.x -= 0.4;  
           }
       }
 

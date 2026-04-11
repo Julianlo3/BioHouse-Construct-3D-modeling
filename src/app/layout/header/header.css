@@ -1,4 +1,4 @@
-/* Paleta: Verde Oscuro: #1b4332 | Verde Claro: #74c69d | Blanco: #ffffff */
+/* Paleta: Verde: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%) | Blanco: #ffffff */
 
 .main-header {
   width: 100%;
@@ -13,7 +13,7 @@
   justify-content: space-between; 
   align-items: center;
   padding: 0 40px;
-  border-bottom: 2px solid #74c69d;
+  border-bottom: 2px solid #b4d435;
   box-sizing: border-box;
 }
 
@@ -30,7 +30,7 @@
 
 .brand-title {
   font-size: 1.8rem;
-  color: #1b4332;
+  color: #2d9547;
   text-transform: uppercase;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .slogan {
-  color: #1b4332;
+  color: #2d9547;
   font-weight: 500;
   margin: 0;
   font-style: italic;
@@ -51,11 +51,11 @@
 
 .btn-nav {
   background-color: #ffffff;
-  border: 2px solid #000000;
+  border: 2px solid #2d9547;
   border-radius: 0; /* Asegura que sean perfectamente cuadrados */
   
-  /* 3. Texto y espaciado */
-  color: #000000; /* Texto negro para contrastar con el fondo blanco */
+  /*  3. Texto y espaciado */
+  color: #2d9547; /* Texto negro para contrastar con el fondo blanco */
   padding: 10px 25px;
   font-weight: bold;
   text-transform: uppercase; /* Opcional: para un look más técnico */
@@ -72,7 +72,7 @@
 /* --- Efecto Hover para los botones --- */
 .btn-nav:hover {
   /* Invertimos los colores al pasar el mouse para un feedback claro */
-  background-color: #000000;
+  background-color: #2d9547;
   color: #ffffff;
   transform: translate(-1px, -1px); /* Pequeño movimiento */
   box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
