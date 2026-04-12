@@ -1,15 +1,24 @@
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
 #divModelado {
-  position: relative;
-  width: 100%;
-  height: 700px;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
-  display: block; /* flex causaba problemas con el canvas absoluto */
+  display: block;
 }
 
 #divModelado canvas {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
 }
 
@@ -33,9 +42,9 @@ app-actions-model {
 }
 
 .floatingButton {
-  position: absolute;
+  position: fixed;
   transform: translate(-50%, -50%);
-  z-index: 20;
+  z-index: 1000;
   pointer-events: auto;
 }
 
@@ -56,22 +65,3 @@ app-actions-model {
   transform: scale(1.15);
 }
 
-.slider-container {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background-color: #333;
-  color: white;
-  padding: 8px 15px;
-  border-radius: 8px;
-  margin-left: 10px;
-  border: 2px solid #555;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
-  font-family: sans-serif;
-  font-weight: bold;
-}
-
-.slider-container input[type='range'] {
-  cursor: pointer;
-  accent-color: #4caf50;
-}

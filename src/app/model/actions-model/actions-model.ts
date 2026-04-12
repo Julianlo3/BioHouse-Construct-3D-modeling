@@ -14,6 +14,7 @@ export class ActionsModel implements OnInit, OnDestroy {
   isWallActive = false;
   isDecorationsActive = false;
   isDecorationSubMenuOpen = false;
+  opacity = 1.0;
   private subscription: Subscription = new Subscription();
 
   constructor(private cubeSelectionService: CubeSelectionService) {}
@@ -27,6 +28,11 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.subscription.add(
       this.cubeSelectionService.decorationActive$.subscribe(active => {
         this.isDecorationsActive = active;
+      })
+    );
+    this.subscription.add(
+      this.cubeSelectionService.opacity$.subscribe(value => {
+        this.opacity = value;
       })
     );
   }
@@ -81,8 +87,21 @@ export class ActionsModel implements OnInit, OnDestroy {
     }
   }
 
-  toggleTutorials() {
-    this.deactivateRaycaster();
+  onOpacityChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    this.opacity = value;
+    this.cubeSelectionService.setOpacity(value);
+  }
+
+  getMessage(): string {
+    if (this.isDecorationsActive) {
+      return 'Doble click para selecionar la pocicion del elemento, utiliza la tecla q para rptar y w (adelante) a (izquierda) s (atras) d (derecha) para pocicionar el elemento';
+    }
+    if (this.isAddBrickActive) {
+      return 'Doble click para selecionar ladrillo y utiliza los botones para crear mas ladrillos';
+    }
+    return '';
   }
 
   toggleCamera() {

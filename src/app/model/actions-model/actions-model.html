@@ -21,10 +21,24 @@
     <img src="/assets/next-Icon.svg" alt="next">
     <li><button class="dropdown-button"><img src="/assets/house-Icon.svg" alt="casa"></button></li>
   </ul> 
+
+  <div id="opacityControl">
+    <label>Opacidad</label>
+    <input
+      type="range"
+      min="0.2"
+      max="1.0"
+      step="0.1"
+      [value]="opacity"
+      (input)="onOpacityChange($event)"
+    />
+  </div>
 </div>
 
 <div id="tutorials">
-    <button class="dropdown-button" (click)="toggleTutorials()"><img src="/assets/help-Icon.svg" alt="Información"></button>
+    <div id="messageBox" [class.show]="isAddBrickActive || isDecorationsActive">
+        {{ getMessage() }}
+    </div>
 </div>
 
 <div id="camare">

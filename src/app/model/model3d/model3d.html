@@ -1,31 +1,17 @@
  <div #modelado id="divModelado"  >
     <div id="tools">
-      <app-actions-model></app-actions-model>
-      <p class="info" id="numBlock"># de bloques: {{numBlocks}}</p>
-      <button class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition" type="button" (click)="construirMuros()">Levantar pared</button>
-      <div class="slider-container">
-        <label>Opacidad:</label>
-        <input
-          type="range"
-          min="0.2"
-          max="1.0"
-          step="0.1"
-          value="1"
-          (input)="cambiarOpacidad($event)"
-        >
-      </div>
+      <app-actions-model id="actionsModel"></app-actions-model>
     </div>
-  @if (selectedCube) {
-    @for (btn of activeButtons; track $index) {
-      @if (btn.visible) {
-        <div
-          class="floatingButton"
-          [style.left.px]="btn.screenX"
-          [style.top.px]="btn.screenY"
-        >
-          <button (click)="crearBloqueDesdeSeleccion(btn.offsetX, btn.offsetZ, btn.rotateY)">+</button>
-        </div>
-      }
-    }
-  }
 </div>
+
+<!-- Botones flotantes 2D (fuera del contenedor con overflow:hidden) -->
+<ng-container *ngFor="let button of activeButtons">
+  <div
+    class="floatingButton"
+    [style.left.px]="button.screenX"
+    [style.top.px]="button.screenY"
+    *ngIf="button.visible"
+  >
+    <button (click)="onFloatingButtonClick(button)">+</button>
+  </div>
+</ng-container>

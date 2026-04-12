@@ -17,6 +17,9 @@ export class CubeSelectionService {
   private decorationActiveSubject = new BehaviorSubject<boolean>(false);
   decorationActive$ = this.decorationActiveSubject.asObservable();
 
+  private opacitySubject = new BehaviorSubject<number>(1);
+  opacity$ = this.opacitySubject.asObservable();
+
   private addDecoration = new Subject<string>();
   addDecoration$ = this.addDecoration.asObservable();
 
@@ -42,6 +45,10 @@ export class CubeSelectionService {
 
   isDecorationActive(): boolean {
     return this.decorationActiveSubject.value;
+  }
+
+  setOpacity(opacity: number): void {
+    this.opacitySubject.next(opacity);
   }
 
   requestAddDecoration(decorationType: string): void {
