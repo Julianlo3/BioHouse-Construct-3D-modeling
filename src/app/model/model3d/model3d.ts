@@ -242,6 +242,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       }
     };
 
+
     window.addEventListener('keydown', keyListener);
     (this as any).decorationKeyListener = keyListener;
   }
