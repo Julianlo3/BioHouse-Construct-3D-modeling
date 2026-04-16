@@ -121,16 +121,38 @@ export class BlockBuilderService {
 
     const newCube = this.cloneWall();
 
-    if (rotateY) newCube.rotation.y = Math.PI / 2;
+    // 1. Calculamos el desplazamiento corregido para el encaje
+    let finalOffsetZ = offsetZ;
+    let finalOffsetX = offsetX;
 
+    // Ajuste para el eje Z (hendidura de 0.17m)
+    if (Math.abs(offsetZ) > 0) {
+      const signoZ = offsetZ > 0 ? 1 : -1;
+      finalOffsetZ = (Math.abs(offsetZ) - 0.17) * signoZ;
+    }
+
+    // Nota: Si el bloque también tiene hendidura en el eje X,
+    // deberías aplicar una lógica similar a finalOffsetX.
+
+    if (rotateY) {
+      newCube.rotation.y = Math.PI / 2;
+
+      if (Math.abs(offsetX) > 0) {
+        const signoX = offsetX > 0 ? 1 : -1;
+        finalOffsetX = (Math.abs(offsetX) - 0.17) * signoX;
+      }
+    }
+
+    // 2. EL CAMBIO CLAVE: Usar finalOffsetZ en lugar de offsetZ
     newCube.position.set(
-      selectedCube.position.x + offsetX,
+      selectedCube.position.x + finalOffsetX, // Usamos la variable local
       selectedCube.position.y,
-      selectedCube.position.z + offsetZ
+      selectedCube.position.z + finalOffsetZ  // <--- Aquí aplicamos el encaje
     );
 
     this.sceneService.add(newCube);
     this.numBlocks++;
+
   }
 
   /**
