@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { TEXTURE_MAP } from '../constants/textures/textures.constant';
 import { MODEL_MAP } from '../constants/models/models.constant';
+import { Group } from 'three';
 
 // Constantes de rutas de modelos
 const MODEL_PATHS = {
@@ -51,32 +52,37 @@ export class AssetLoaderService {
    * Carga y configura la textura de concreto
    */
   loadConcreteTexture(opacity: number): THREE.MeshStandardMaterial {
-    const concreteTexture = this.loadTexture(this.textures.concrete.default);
-    concreteTexture.wrapS = THREE.RepeatWrapping;
-    concreteTexture.wrapT = THREE.RepeatWrapping;
-    concreteTexture.repeat.set(1, 1);
+    const baseColor = this.textureLoader.load(this.textures.concreteDetail.color);
+    const normalMap = this.textureLoader.load(this.textures.concreteDetail.gl);
+    const roughnessMap = this.textureLoader.load(this.textures.concreteDetail.roughness);
+    const aoMap = this.textureLoader.load(this.textures.concreteDetail.ambientOcc);
 
-    return new THREE.MeshStandardMaterial({
-      map: concreteTexture,
+    const material = new THREE.MeshStandardMaterial({
+      map: baseColor,
+      normalMap: normalMap,
+      roughnessMap: roughnessMap,
+      aoMap: aoMap,
       transparent: true,
       opacity: opacity,
+      // Ajustes opcionales para realismo:
+      roughness: 1, // 1 es totalmente mate (concreto)
+      metalness: 0, // 0 porque no es metal
     });
+
+    return material;
   }
 
   /**
    * Carga el modelo GLB del bloque base
    */
-  loadBlockModel(
-    onSuccess: (gltf: THREE.Group) => void,
-    onError: (error: unknown) => void
-  ): void {
+  loadBlockModel(onSuccess: (gltf: Group) => void, onError: (error: unknown) => void): void {
     this.gltfLoader.load(
-      this.models.block,
+      this.models.blockTexture,
       (gltf) => {
         onSuccess(gltf.scene);
       },
       undefined,
-      (error) => onError(error)
+      (error) => onError(error),
     );
   }
 
@@ -86,13 +92,18 @@ export class AssetLoaderService {
   loadDecorationModel(
     decorationType: 'door' | 'window',
     onSuccess: (gltf: THREE.Group) => void,
-    onError: (error: unknown) => void
+    onError: (error: unknown) => void,
   ): void {
     const modelPath = MODEL_PATHS[decorationType];
 
-    this.gltfLoader.load(modelPath, (gltf) => {
-      onSuccess(gltf.scene);
-    }, undefined, (error) => onError(error));
+    this.gltfLoader.load(
+      modelPath,
+      (gltf) => {
+        onSuccess(gltf.scene);
+      },
+      undefined,
+      (error) => onError(error),
+    );
   }
 
   /**

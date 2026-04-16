@@ -48,105 +48,55 @@ export class OverlayService {
       return;
     }
 
-    const pos = selectedCube.position;
+    const pos       = selectedCube.position;
     const isRotated = Math.abs(selectedCube.rotation.y) > 0.1;
 
-    const halfX = 0.2;
-    const halfZ = 1.5;
+    const L = 3.0;   // Largo total
+    const W = 0.4;   // Ancho total
+    const halfL = L / 2; // 1.5
+    const halfW = W / 2; // 0.2
 
-    const esquinaLateral = 2.32;
-    const esquinaFrontal = 1.96;
-    const posButtonTop = 0.65;
+    // Offsets calculados para que las caras se toquen perfectamente
+    const offEsquinaX = halfL + halfW; // 1.7
+    const offEsquinaZ = halfL - halfW; // 1.3
 
-    let buttonConfigs: Array<{
-      offsetX: number;
-      offsetZ: number;
-      rotateY: boolean;
-      btnPos: THREE.Vector3;
-    }>;
+    // separacion botones
+    const separacionX = 0.5;
+    const separacionZ = 0.5;
+
+    let buttonConfigs: any[] = [];
 
     if (!isRotated) {
+      // ── Bloque orientado en Z (Recto) ──
       buttonConfigs = [
-        {
-          offsetX: 0,
-          offsetZ: 3.0,
-          rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + posButtonTop, pos.y, pos.z + halfZ),
-        },
-        {
-          offsetX: 0,
-          offsetZ: -3.0,
-          rotateY: false,
-          btnPos: new THREE.Vector3(
-            pos.x + posButtonTop,
-            pos.y,
-            pos.z - halfZ - 1
-          ),
-        },
-        {
-          offsetX: esquinaLateral,
-          offsetZ: 1.96,
-          rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + 1.5, pos.y, pos.z + 1),
-        },
-        {
-          offsetX: esquinaLateral,
-          offsetZ: -1.44,
-          rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + 1.5, pos.y, pos.z - 1.8),
-        },
-        {
-          offsetX: -0.28,
-          offsetZ: esquinaFrontal,
-          rotateY: true,
-          btnPos: new THREE.Vector3(pos.x, pos.y, pos.z + 1),
-        },
-        {
-          offsetX: -0.28,
-          offsetZ: -1.44,
-          rotateY: true,
-          btnPos: new THREE.Vector3(pos.x, pos.y, pos.z - 1.8),
-        },
+        // Continuar recto (Z)
+        { offsetX: 0, offsetZ: L, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z + halfL + separacionZ) },
+        { offsetX: 0, offsetZ: -L, rotateY: false, btnPos: new THREE.Vector3(pos.x, pos.y, pos.z - halfL - separacionZ) },
+
+        // Esquinas Derechas (X+)
+        { offsetX: offEsquinaX, offsetZ: offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x + halfW + separacionX, pos.y, pos.z + halfL) },
+        { offsetX: offEsquinaX, offsetZ: -offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x + halfW + separacionX, pos.y, pos.z - halfL) },
+
+        // Esquinas Izquierdas (X-)
+        { offsetX: -offEsquinaX, offsetZ: offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x - halfW - separacionX, pos.y, pos.z + halfL) },
+        { offsetX: -offEsquinaX, offsetZ: -offEsquinaZ, rotateY: true, btnPos: new THREE.Vector3(pos.x - halfW - separacionX, pos.y, pos.z - halfL) },
       ];
     } else {
+      // ── Bloque orientado en X (Rotado) ──
       buttonConfigs = [
-        {
-          offsetX: 3.0,
-          offsetZ: 0,
-          rotateY: true,
-          btnPos: new THREE.Vector3(pos.x + halfZ, pos.y, pos.z - 1),
-        },
-        {
-          offsetX: -3.0,
-          offsetZ: 0,
-          rotateY: true,
-          btnPos: new THREE.Vector3(pos.x - halfZ - 1, pos.y, pos.z - 1),
-        },
-        {
-          offsetX: 0.28,
-          offsetZ: 1.44,
-          rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + 1, pos.y, pos.z),
-        },
-        {
-          offsetX: -2.32,
-          offsetZ: 1.44,
-          rotateY: false,
-          btnPos: new THREE.Vector3(pos.x - 1.8, pos.y, pos.z),
-        },
-        {
-          offsetX: 0.28,
-          offsetZ: -1.96,
-          rotateY: false,
-          btnPos: new THREE.Vector3(pos.x + 1, pos.y, pos.z - 1.8),
-        },
-        {
-          offsetX: -2.32,
-          offsetZ: -1.96,
-          rotateY: false,
-          btnPos: new THREE.Vector3(pos.x - 2, pos.y, pos.z - 2),
-        },
+        // Continuar recto (X)
+        { offsetX: L, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x + halfL + separacionX, pos.y, pos.z) },
+        { offsetX: -L, offsetZ: 0, rotateY: true, btnPos: new THREE.Vector3(pos.x - halfL - separacionZ, pos.y, pos.z) },
+
+        // Esquinas Frontales (Z+)
+        { offsetX: offEsquinaZ, offsetZ: offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x + halfL, pos.y, pos.z + halfW + separacionZ) },
+        { offsetX: -offEsquinaZ, offsetZ: offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x - halfL, pos.y, pos.z + halfW + separacionZ) },
+
+        // Esquinas Traseras (Z-)
+        { offsetX: offEsquinaZ, offsetZ: -offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x + halfL, pos.y, pos.z - halfW - separacionZ) },
+        { offsetX: -offEsquinaZ, offsetZ: -offEsquinaX, rotateY: false, btnPos: new THREE.Vector3(pos.x - halfL, pos.y, pos.z - halfW - separacionZ) },
       ];
+
     }
 
     const renderer = this.sceneService.getRenderer();

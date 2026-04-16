@@ -23,22 +23,40 @@ export class BlockBuilderService {
   loadBlockModel(onSuccess: () => void): void {
     this.assetLoader.loadBlockModel(
       (gltf) => {
-        this.moldeBloque = gltf;
-        this.moldeBloque.scale.set(40, 40, 40);
-        this.moldeBloque.updateMatrixWorld(true);
+        // 1. EL CAMBIO AQUÍ: No uses this.sceneService.getScene()
+        // Usamos gltf.scene (que es solo el bloque del archivo .glb)
+        const modeloOriginal = gltf
 
-        const box = new THREE.Box3().setFromObject(this.moldeBloque);
+        // 2. Medición inicial (esto ahora solo medirá el bloque, no el suelo)
+        const box = new THREE.Box3().setFromObject(modeloOriginal);
         const size = new THREE.Vector3();
+        const center = new THREE.Vector3();
         box.getSize(size);
+        box.getCenter(center);
 
-        console.log('Tamaño X:', size.x, '| Y:', size.y, '| Z:', size.z);
-        console.log('Centro X:', box.getCenter(new THREE.Vector3()).x, '| Y:', box.getCenter(new THREE.Vector3()).y, '| Z:', box.getCenter(new THREE.Vector3()).z);
+        // ... resto del código igual ...
+        const largoObjetivo = 3;
+        const maxDim = Math.max(size.x, size.z);
+        const escalaGral = largoObjetivo / maxDim;
 
-        this.alturaBloque = box.max.y - box.min.y;
-        console.log(`Altura real del bloque: ${this.alturaBloque}`);
+        const contenedor = new THREE.Group();
+        contenedor.name = 'muro';
+
+        modeloOriginal.scale.set(escalaGral, escalaGral, escalaGral);
+
+        // Centramos el bloque dentro del contenedor
+        modeloOriginal.position.x = -center.x * escalaGral;
+        modeloOriginal.position.z = -center.z * escalaGral;
+        modeloOriginal.position.y = -box.min.y * escalaGral;
+
+        contenedor.add(modeloOriginal);
+
+        this.moldeBloque = contenedor;
+        this.alturaBloque = (box.max.y - box.min.y) * escalaGral;
 
         const materialConcreto = this.sceneService.getConcreteMaterial(this.opacity);
 
+        // 3. Ahora el traverse solo afectará a las piezas del bloque
         this.moldeBloque.traverse((hijo) => {
           if (hijo instanceof THREE.Mesh) {
             hijo.material = materialConcreto;
@@ -48,12 +66,10 @@ export class BlockBuilderService {
           }
         });
 
-        this.moldeBloque.name = 'muro';
-
-        console.log('Modelo GLB cargado y listo.');
+        console.log('Modelo GLB normalizado y separado de la escena global.');
         onSuccess();
       },
-      (error) => console.error('Error al cargar el modelo:', error)
+      (error: any) => console.error('Error crítico al cargar el modelo:', error)
     );
   }
 

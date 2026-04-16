@@ -93,7 +93,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
     // Cargar el modelo del bloque
     this.blockBuilder.loadBlockModel(() => {
-      this.blockBuilder.buildCube(-0.44, 1.88);
+      this.blockBuilder.buildCube(0, 0);
       this.animate();
     });
   }

@@ -47,8 +47,7 @@ export class SceneService {
     this.controls.addEventListener('change', () => onControlsChange());
 
     // ── Guías ─────────────────────────────────────────────────────────────
-    this.scene.add(new THREE.AxesHelper(20));
-    this.scene.add(new THREE.GridHelper(100, 100, 0xffffff, 0xffffff));
+
 
     // ── Texturas ──────────────────────────────────────────────────────────
     this.initGrass();
