@@ -47,32 +47,45 @@ export class SceneService {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.addEventListener('change', () => onControlsChange());
 
+    // --- LIMITAR EL ZOOM ---
+
+// Qué tanto se puede ACERCAR (distancia mínima de la cámara al centro)
+    this.controls.minDistance = 2;
+
+// Qué tanto se puede ALEJAR (distancia máxima para que no se vea el borde de la esfera)
+    this.controls.maxDistance = 60;
+
+    // Limita que la cámara no baje más allá del horizonte (el suelo)
+    this.controls.maxPolarAngle = Math.PI / 2.1; // Un poco más de 90 grados
+
+// No olvides habilitar el damping para que el movimiento sea suave
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.05;
+
     // ── Guías ─────────────────────────────────────────────────────────────
 
 
     // ── Texturas ──────────────────────────────────────────────────────────
-    this.initSkybox()
+    //this.initSkybox();
+    this.createHDRCube();
     this.initGrass();
+    this.initBorderMountains();
   }
 
   private initSkybox(): void {
     const rgbeLoader = new RGBELoader();
 
-    // 1. Cargamos el archivo .hdr
     rgbeLoader.load('textures/sky/quarry_04_puresky_1k.hdr', (texture) => {
-      // 2. Configuramos la proyección para que sea una esfera (cielo)
       texture.mapping = THREE.EquirectangularReflectionMapping;
 
-      // 3. Aplicamos la textura al fondo de la escena
       this.scene.background = texture;
-
-      // 4. ✨ EL TRUCO: Usar el cielo como fuente de luz ambiental
-      // Esto hará que el lodo y los muros reflejen los colores del cielo
       this.scene.environment = texture;
 
       console.log('Cielo HDR cargado y luz de ambiente configurada.');
     });
   }
+
+
 
   /**
    * Inicializa la textura de pasto y el terreno
@@ -88,7 +101,7 @@ export class SceneService {
     // 2. Configuración de repetición (Tiling)
     [diffTex, norTex, armTex].forEach(tex => {
       tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(10, 10); // Ajusta según qué tan denso quieras el suelo
+      tex.repeat.set(50, 50); // Ajusta según qué tan denso quieras el suelo
     });
 
     // 3. Crear el material usando el mapa ARM
@@ -107,13 +120,64 @@ export class SceneService {
     });
 
     // 4. Geometría subdividida para que se vea el relieve (aunque no uses displacement)
-    const groundGeometry = new THREE.PlaneGeometry(100, 100, 256, 256);
+    const groundGeometry = new THREE.PlaneGeometry(400, 400, 256, 256);
 
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.name = 'suelo_pasto';
 
     this.scene.add(ground);
+  }
+
+  private initBorderMountains(): void {
+    const loader = new THREE.TextureLoader();
+    const heightMap = loader.load('textures/mountains/Rolling Hills Height Map.png');
+    const textureMap = loader.load('textures/mountains/Rolling Hills Bitmap 1025.png');
+
+    // 1. Crea un plano mucho más grande que tu suelo actual
+    // Si tu suelo mide 100x100, haz este de 500x500
+    const geometry = new THREE.PlaneGeometry(900, 900, 128, 128);
+
+    const material = new THREE.MeshStandardMaterial({
+      map: textureMap,
+      displacementMap: heightMap,
+      displacementScale: 150, // Altura moderada para no tapar todo el cielo
+      roughness: 0.8
+    });
+
+    const mountains = new THREE.Mesh(geometry, material);
+    mountains.rotation.x = -Math.PI / 2;
+
+    // 2. EL TRUCO: Baja un poco el plano para que el centro sea plano
+    // y las colinas solo sobresalgan en los bordes.
+    mountains.position.y = -10;
+
+    this.scene.add(mountains);
+  }
+
+  private createHDRCube(): void {
+    const loader = new RGBELoader();
+
+    // 1. Cargamos tu archivo .hdr
+    loader.load('textures/sky/quarry_04_puresky_1k.hdr', (texture) => {
+
+      // 2. Creamos la geometría del cubo (grande, para que encierre todo)
+      // 1000 unidades de lado suele ser suficiente
+      const geometry = new THREE.SphereGeometry(500, 60, 40);
+
+      // 3. Creamos el material que usará el HDR
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide // IMPORTANTE: Para ver el cubo desde ADENTRO
+      });
+
+      const skyCube = new THREE.Mesh(geometry, material);
+      this.scene.add(skyCube);
+
+      // 4. OPCIONAL: Usar el mismo HDR para que BioHouse tenga luz realista
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      this.scene.environment = texture;
+    });
   }
 
   /**
