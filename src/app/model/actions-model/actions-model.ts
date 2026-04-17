@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CubeSelectionService } from '../../services/cube-selection.service';
 import { Subscription } from 'rxjs';
+import { SceneService } from '../../services/scene';
 
 @Component({
   selector: 'app-actions-model',
@@ -15,9 +16,10 @@ export class ActionsModel implements OnInit, OnDestroy {
   isDecorationsActive = false;
   isDecorationSubMenuOpen = false;
   opacity = 1.0;
+  guiasActivas: boolean = false;
   private subscription: Subscription = new Subscription();
 
-  constructor(private cubeSelectionService: CubeSelectionService) {}
+  constructor(private cubeSelectionService: CubeSelectionService,private sceneService: SceneService) {}
 
   ngOnInit(): void {
     this.subscription.add(
@@ -57,6 +59,12 @@ export class ActionsModel implements OnInit, OnDestroy {
       this.cubeSelectionService.requestSelectCube();
       document.body.classList.add('mouse-red-cursor');
     }
+  }
+
+  toggleGuias(): void {
+    this.guiasActivas = !this.guiasActivas;
+    // Llamamos al servicio que maneja la escena
+    this.sceneService.setGuidelinesVisibility(this.guiasActivas);
   }
 
   buildWall(){

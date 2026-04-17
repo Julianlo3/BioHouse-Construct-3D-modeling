@@ -20,7 +20,7 @@
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
     <li><button class="dropdown-button"><img src="/assets/house-Icon.svg" alt="casa"></button></li>
-  </ul> 
+  </ul>
 
   <div id="opacityControl">
     <label>Opacidad</label>
@@ -33,6 +33,18 @@
       (input)="onOpacityChange($event)"
     />
   </div>
+
+  <div id="lineGuides">
+    <button
+      (click)="toggleGuias()"
+      class="px-4 py-2 rounded text-white text-sm font-medium transition-colors"
+      [class.bg-blue-600]="guiasActivas"
+      [class.bg-zinc-800]="!guiasActivas"
+    >
+      {{ guiasActivas ? 'Guías ON' : 'Guías OFF' }}
+    </button>
+  </div>
+
 </div>
 
 <div id="tutorials">

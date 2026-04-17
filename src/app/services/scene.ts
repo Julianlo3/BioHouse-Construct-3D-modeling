@@ -50,19 +50,17 @@ export class SceneService {
     // --- LIMITAR EL ZOOM ---
 
 // Qué tanto se puede ACERCAR (distancia mínima de la cámara al centro)
-    this.controls.minDistance = 2;
+    //this.controls.minDistance = 2;
 
 // Qué tanto se puede ALEJAR (distancia máxima para que no se vea el borde de la esfera)
     this.controls.maxDistance = 60;
 
     // Limita que la cámara no baje más allá del horizonte (el suelo)
-    this.controls.maxPolarAngle = Math.PI / 2.1; // Un poco más de 90 grados
+    //this.controls.maxPolarAngle = Math.PI / 2.1; // Un poco más de 90 grados
 
-// No olvides habilitar el damping para que el movimiento sea suave
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
 
-    // ── Guías ─────────────────────────────────────────────────────────────
 
 
     // ── Texturas ──────────────────────────────────────────────────────────
@@ -70,6 +68,36 @@ export class SceneService {
     this.createHDRCube();
     this.initGrass();
     this.initBorderMountains();
+    //this.buildColum();
+  }
+
+  setGuidelinesVisibility(visible: boolean): void {
+    // Intentamos buscar si ya existen en la escena
+    const existingAxes = this.scene.getObjectByName('axesHelper');
+    const existingGrid = this.scene.getObjectByName('gridHelper');
+
+    if (visible) {
+      // Si ya existen, solo los mostramos
+      if (existingAxes && existingGrid) {
+        existingAxes.visible = true;
+        existingGrid.visible = true;
+      } else {
+        // Si no existen, los creamos por primera vez
+        const axesHelper = new THREE.AxesHelper(5);
+        axesHelper.name = 'axesHelper'; // IMPORTANTE: Ponerle nombre
+        axesHelper.position.set(-0.2, 0.3, -1.5);
+        this.scene.add(axesHelper);
+
+        const gridHelper = new THREE.GridHelper(100, 100, 0xffffff, 0xffffff);
+        gridHelper.name = 'gridHelper'; // IMPORTANTE: Ponerle nombre
+        gridHelper.position.set(0.2, 0.3, 1.5);
+        this.scene.add(gridHelper);
+      }
+    } else {
+      // Si el usuario quiere ocultarlas
+      if (existingAxes) existingAxes.visible = false;
+      if (existingGrid) existingGrid.visible = false;
+    }
   }
 
   private initSkybox(): void {
@@ -90,6 +118,15 @@ export class SceneService {
   /**
    * Inicializa la textura de pasto y el terreno
    */
+
+  private buildColum(){
+    const geometry = new THREE.BoxGeometry(0.4, 0.6, 0.4);
+    const material = new THREE.MeshStandardMaterial({ color: 0x808080 });
+    const columna = new THREE.Mesh(geometry, material);
+    columna.position.set(0,0.3,1.7)
+    this.scene.add(columna)
+  }
+
   private initGrass(): void {
     const loader = new THREE.TextureLoader();
 

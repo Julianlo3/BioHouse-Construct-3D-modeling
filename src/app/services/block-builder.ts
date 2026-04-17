@@ -38,16 +38,17 @@ export class BlockBuilderService {
         const largoObjetivo = 3;
         const maxDim = Math.max(size.x, size.z);
         const escalaGral = largoObjetivo / maxDim;
+        const escalaY = 0.6 / size.y;
 
         const contenedor = new THREE.Group();
         contenedor.name = 'muro';
 
-        modeloOriginal.scale.set(escalaGral, escalaGral, escalaGral);
+        modeloOriginal.scale.set(escalaGral, escalaY, escalaGral);
 
         // Centramos el bloque dentro del contenedor
         modeloOriginal.position.x = -center.x * escalaGral;
         modeloOriginal.position.z = -center.z * escalaGral;
-        modeloOriginal.position.y = -box.min.y * escalaGral;
+        modeloOriginal.position.y = -box.min.y * escalaY;
 
         contenedor.add(modeloOriginal);
 

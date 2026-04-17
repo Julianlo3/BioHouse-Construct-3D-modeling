@@ -36,6 +36,11 @@
   justify-content: center;
 }
 
+#lineGuides{
+  position: relative;
+  top: 10vh;
+}
+
 .main-button:hover {
   background-color: #2d9547;
 }

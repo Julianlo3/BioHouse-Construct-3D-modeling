@@ -31,6 +31,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('modelado', { static: false })
   private container!: ElementRef;
 
+
   // ─── Inyección de servicios ──────────────────────────────────────────────
   constructor(
     private cdr: ChangeDetectorRef,
@@ -54,6 +55,9 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     rotateY: boolean;
     visible: boolean;
   }> = [];
+
+
+
 
   // =========================================================================
   // CICLO DE VIDA
