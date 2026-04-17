@@ -11,6 +11,7 @@ export class BlockBuilderService {
   private alturaBloque: number = 1;
   private numBlocks: number = 0;
   private opacity: number = 1.0;
+  private numColumns: number = 0;
 
   constructor(
     private sceneService: SceneService,
@@ -208,6 +209,10 @@ export class BlockBuilderService {
    */
   getBlockCount(): number {
     return this.numBlocks;
+  }
+
+  getColumnCount(): number {
+    return this.numColumns;
   }
 
   /**

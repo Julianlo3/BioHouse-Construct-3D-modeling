@@ -36,7 +36,9 @@ export class SceneService {
       0.1,
       1000
     );
-    this.camera.position.z = 5;
+    this.camera.position.z = 1;
+    this.camera.position.x = 7;
+    this.camera.position.y = 3;
 
     // ── Escena ────────────────────────────────────────────────────────────
     this.scene = new THREE.Scene();

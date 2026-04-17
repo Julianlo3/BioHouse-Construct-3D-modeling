@@ -43,6 +43,11 @@
     >
       {{ guiasActivas ? 'Guías ON' : 'Guías OFF' }}
     </button>
+
+    <div id="metricas">
+      <p># de bloques construidos {{getNumBlocks()}}</p>
+      <p># de bloques consecutivos {{getColumnCount()}}</p>
+    </div>
   </div>
 
 </div>

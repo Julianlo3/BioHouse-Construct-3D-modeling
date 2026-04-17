@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CubeSelectionService } from '../../services/cube-selection.service';
 import { Subscription } from 'rxjs';
 import { SceneService } from '../../services/scene';
+import { BlockBuilderService } from '../../services/block-builder';
 
 @Component({
   selector: 'app-actions-model',
@@ -19,7 +20,10 @@ export class ActionsModel implements OnInit, OnDestroy {
   guiasActivas: boolean = false;
   private subscription: Subscription = new Subscription();
 
-  constructor(private cubeSelectionService: CubeSelectionService,private sceneService: SceneService) {}
+
+  constructor(private cubeSelectionService: CubeSelectionService,private sceneService: SceneService,
+              private blockBuilderService: BlockBuilderService,) {}
+
 
   ngOnInit(): void {
     this.subscription.add(
@@ -63,8 +67,15 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   toggleGuias(): void {
     this.guiasActivas = !this.guiasActivas;
-    // Llamamos al servicio que maneja la escena
     this.sceneService.setGuidelinesVisibility(this.guiasActivas);
+  }
+
+  getNumBlocks(): number {
+    return this.blockBuilderService.getBlockCount();
+  }
+
+  getColumnCount(): number {
+    return this.blockBuilderService.getColumnCount();
   }
 
   buildWall(){
