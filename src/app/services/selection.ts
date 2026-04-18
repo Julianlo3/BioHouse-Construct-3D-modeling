@@ -70,6 +70,8 @@ export class SelectionService {
     // Aplicar highlight al nuevo seleccionado
     grupo.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
+        // @ts-ignore
+        console.log("coorndedas de cubo seleccionado X:" + (this.selectedCube.position.x as number) + " Z:" + (this.selectedCube.position.z as number) );
         const mat = (obj.material as THREE.MeshStandardMaterial).clone();
         mat.color.set(0xff0000);
         obj.material = mat;

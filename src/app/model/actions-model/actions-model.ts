@@ -74,6 +74,10 @@ export class ActionsModel implements OnInit, OnDestroy {
     return this.blockBuilderService.getBlockCount();
   }
 
+  getSecuenceBlocks(): number {
+    return this.blockBuilderService.getSecuenceBlocks();
+  }
+
   getColumnCount(): number {
     return this.blockBuilderService.getColumnCount();
   }

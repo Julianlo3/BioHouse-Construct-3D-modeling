@@ -48,6 +48,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
   // ─── Propiedades públicas para el template ───────────────────────────────
   activeButtons: Array<{
+    label: string;
+    obj: string;
     screenX: number;
     screenY: number;
     offsetX: number;
@@ -208,17 +210,28 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
    * Maneja el click en un botón flotante
    */
   onFloatingButtonClick(config: {
+    label: string;
+    obj: string;
     offsetX: number;
     offsetZ: number;
     rotateY: boolean;
   }): void {
     const selectedCube = this.selectionService.getSelectedCube();
     if (selectedCube) {
+
+      console.log(`Construyendo hacia: ${config.label}`);
+
+      if (!selectedCube.userData['ocupados']) {
+        selectedCube.userData['ocupados'] = [];
+      }
+      selectedCube.userData['ocupados'].push(config.label)
+
       this.blockBuilder.createBlockFromSelection(
         selectedCube,
         config.offsetX,
         config.offsetZ,
-        config.rotateY
+        config.rotateY,
+        config.label
       );
       this.updateButtonPosition();
     }

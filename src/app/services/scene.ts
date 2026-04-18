@@ -70,7 +70,6 @@ export class SceneService {
     this.createHDRCube();
     this.initGrass();
     this.initBorderMountains();
-    //this.buildColum();
   }
 
   setGuidelinesVisibility(visible: boolean): void {
@@ -121,13 +120,6 @@ export class SceneService {
    * Inicializa la textura de pasto y el terreno
    */
 
-  private buildColum(){
-    const geometry = new THREE.BoxGeometry(0.4, 0.6, 0.4);
-    const material = new THREE.MeshStandardMaterial({ color: 0x808080 });
-    const columna = new THREE.Mesh(geometry, material);
-    columna.position.set(0,0.3,1.7)
-    this.scene.add(columna)
-  }
 
   private initGrass(): void {
     const loader = new THREE.TextureLoader();
