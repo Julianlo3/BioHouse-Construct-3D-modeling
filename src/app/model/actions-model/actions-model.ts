@@ -43,6 +43,7 @@ export class ActionsModel implements OnInit, OnDestroy {
     );
   }
 
+
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
@@ -72,6 +73,10 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   getNumBlocks(): number {
     return this.blockBuilderService.getBlockCount();
+  }
+
+  getSecuenceBlocks(): number {
+    return this.blockBuilderService.getSecuenceBlocks();
   }
 
   getColumnCount(): number {
