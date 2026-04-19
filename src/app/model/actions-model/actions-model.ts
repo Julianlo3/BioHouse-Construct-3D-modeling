@@ -4,9 +4,11 @@ import { Subscription } from 'rxjs';
 import { SceneService } from '../../services/scene';
 import { BlockBuilderService } from '../../services/block-builder';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-actions-model',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './actions-model.html',
   styleUrl: './actions-model.css',
 })
@@ -20,6 +22,7 @@ export class ActionsModel implements OnInit, OnDestroy {
   isDecorationSubMenuOpen = false;
   opacity = 1.0;
   guiasActivas: boolean = false;
+  floorArea: number = 0;
   private subscription: Subscription = new Subscription();
 
 
@@ -101,6 +104,10 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   buildWall(){
     this.cubeSelectionService.requestConstruirMuro();
+  }
+
+  buildFloor() {
+    this.floorArea = this.blockBuilderService.buildGroundFloor();
   }
 
   toggleDecorationSubMenu() {

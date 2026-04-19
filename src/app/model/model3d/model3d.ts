@@ -160,11 +160,16 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     );
 
     if (cubeHit) {
+      // Se utiliza una función recursiva (getRootGroup) porque el raycaster
+      // puede devolver una malla interna del bloque en lugar del grupo principal que lo contiene.
+      // Esto asegura la selección del bloque completo.
       const selectedGroup = this.selectionService.getRootGroup(
         cubeHit.object
       );
       this.selectionService.selectCube(selectedGroup);
-      this.updateButtonPosition(); // Actualizar botones flotantes
+      
+      // Actualización de la posición de los botones del overlay.
+      this.updateButtonPosition();
 
       if (
         this.decorationService.isAddingDecorationMode() &&
@@ -223,7 +228,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
       const newBlockSize = this.cubeSelectionService.getBlockSize();
 
-      const success = this.blockBuilder.createBlockFromSelection(
+      const newCube = this.blockBuilder.createBlockFromSelection(
         selectedCube,
         config.offsetX,
         config.offsetZ,
@@ -232,11 +237,15 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         newBlockSize
       );
 
-      if (success) {
+      if (newCube) {
         if (!selectedCube.userData['ocupados']) {
           selectedCube.userData['ocupados'] = [];
         }
         selectedCube.userData['ocupados'].push(config.label);
+        
+        // Se selecciona automáticamente el bloque recién creado para optimizar el flujo de trabajo
+        // y permitir la construcción continua de muros sin requerir clics adicionales para la re-selección.
+        this.selectionService.selectCube(newCube);
         this.updateButtonPosition();
       }
     }

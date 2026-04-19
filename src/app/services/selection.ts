@@ -36,7 +36,9 @@ export class SelectionService {
       onMouseMove(event);
     });
 
-    // Manejar clicks
+    // Configuración del Raycaster para detectar clics en el entorno 3D.
+    // Las coordenadas del mouse en pantalla (2D) se mapean al espacio normalizado de WebGL (-1 a +1)
+    // para que el rayo proyectado desde la cámara detecte correctamente las intersecciones con los objetos.
     renderer.domElement.addEventListener('click', (event: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
       this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -53,10 +55,11 @@ export class SelectionService {
   }
 
   /**
-   * Selecciona un cubo (grupo raíz del muro)
+   * Selecciona un cubo en la interfaz visual
    */
   selectCube(grupo: THREE.Object3D): void {
-    // Remover highlight del anterior
+    // Si existe un bloque previamente seleccionado, se restablece su material al color blanco original
+    // iterando a través de sus mallas internas.
     if (this.selectedCube) {
       this.selectedCube.traverse((obj) => {
         if (obj instanceof THREE.Mesh) {
@@ -67,7 +70,8 @@ export class SelectionService {
 
     this.selectedCube = grupo;
 
-    // Aplicar highlight al nuevo seleccionado
+    // Se aplica el resaltado visual al nuevo bloque seleccionado clonando su material
+    // y estableciendo el color en rojo.
     grupo.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
         // @ts-ignore
