@@ -225,12 +225,13 @@ export class BlockBuilderService {
       colZ = ref.position.z + Math.sign(offsetZ) * distCol1;
     }
 
-    // Insertar columna
-    const geo = new THREE.BoxGeometry(ANCHO, 3, ANCHO);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x808080 });
+    // Insertar columna (2.5 metros de altura real = 10 unidades del modelo)
+    const geo = new THREE.BoxGeometry(ANCHO, 10, ANCHO);
+    const mat = this.sceneService.getColumnMaterial();
     const col = new THREE.Mesh(geo, mat);
     col.name = 'columna';
-    col.position.set(colX, 0, colZ);
+    // Se ajusta la posición Y a 4.7 para que la base quede alineada con el primer bloque (-0.3)
+    col.position.set(colX, 4.7, colZ);
     this.sceneService.add(col);
     this.numColumns++;
     console.log(`Columna giro en X:${colX} Z:${colZ}`);
@@ -280,8 +281,8 @@ export class BlockBuilderService {
     dirZ: number,
     lado: number
   ): void {
-    const geo = new THREE.BoxGeometry(ANCHO, 3, ANCHO);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x808080 });
+    const geo = new THREE.BoxGeometry(ANCHO, 10, ANCHO);
+    const mat = this.sceneService.getColumnMaterial();
     const col = new THREE.Mesh(geo, mat);
     col.name = 'columna';
 
@@ -293,7 +294,7 @@ export class BlockBuilderService {
     // en la misma dirección de avance del segmento
     col.position.set(
       refBloque.position.x + dirX * distCol * lado,
-      0,
+      4.7,
       refBloque.position.z + dirZ * distCol * lado
     );
 

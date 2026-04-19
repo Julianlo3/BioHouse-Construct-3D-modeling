@@ -14,7 +14,7 @@ export class SceneService {
   private controls!: OrbitControls;
   private container!: ElementRef;
 
-  constructor(private assetLoader: AssetLoaderService) {}
+  constructor(private assetLoader: AssetLoaderService) { }
 
   /**
    * Inicializa la escena, cámara, renderer, luces y controles
@@ -51,14 +51,14 @@ export class SceneService {
 
     // --- LIMITAR EL ZOOM ---
 
-// Qué tanto se puede ACERCAR (distancia mínima de la cámara al centro)
-    //this.controls.minDistance = 2;
+    // Qué tanto se puede ACERCAR (distancia mínima de la cámara al centro)
+    this.controls.minDistance = 2;
 
-// Qué tanto se puede ALEJAR (distancia máxima para que no se vea el borde de la esfera)
+    // Qué tanto se puede ALEJAR (distancia máxima para que no se vea el borde de la esfera)
     this.controls.maxDistance = 60;
 
     // Limita que la cámara no baje más allá del horizonte (el suelo)
-    //this.controls.maxPolarAngle = Math.PI / 2.1; // Un poco más de 90 grados
+    this.controls.maxPolarAngle = Math.PI / 2.1; // Un poco más de 90 grados
 
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
@@ -66,7 +66,6 @@ export class SceneService {
 
 
     // ── Texturas ──────────────────────────────────────────────────────────
-    //this.initSkybox();
     this.createHDRCube();
     this.initGrass();
     this.initBorderMountains();
@@ -100,21 +99,6 @@ export class SceneService {
       if (existingGrid) existingGrid.visible = false;
     }
   }
-
-  private initSkybox(): void {
-    const rgbeLoader = new RGBELoader();
-
-    rgbeLoader.load('textures/sky/quarry_04_puresky_1k.hdr', (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-
-      this.scene.background = texture;
-      this.scene.environment = texture;
-
-      console.log('Cielo HDR cargado y luz de ambiente configurada.');
-    });
-  }
-
-
 
   /**
    * Inicializa la textura de pasto y el terreno
@@ -216,6 +200,13 @@ export class SceneService {
    */
   getConcreteMaterial(opacity: number): THREE.MeshStandardMaterial {
     return this.assetLoader.loadConcreteTexture(opacity);
+  }
+
+  /**
+   * Obtiene el material de la columna
+   */
+  getColumnMaterial(): THREE.MeshStandardMaterial {
+    return this.assetLoader.loadColumnTexture();
   }
 
   /**

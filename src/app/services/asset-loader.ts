@@ -73,6 +73,41 @@ export class AssetLoaderService {
   }
 
   /**
+   * Carga y configura la textura de la columna
+   */
+  loadColumnTexture(): THREE.MeshStandardMaterial {
+    const baseColor = this.textureLoader.load(this.textures.column.color);
+    const normalMap = this.textureLoader.load(this.textures.column.normal);
+    const armMap = this.textureLoader.load(this.textures.column.arm);
+
+    // IMPORTANTE: Configurar el espacio de color para evitar que la imagen se vea "blanca" o lavada
+    baseColor.colorSpace = THREE.SRGBColorSpace;
+
+    // Configurar repetición para que la textura se vea bien a lo largo de 2.5 metros (10 unidades)
+    baseColor.wrapS = baseColor.wrapT = THREE.RepeatWrapping;
+    normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping;
+    armMap.wrapS = armMap.wrapT = THREE.RepeatWrapping;
+
+    // Repetir un poco en Y para que el corrugado no se vea estirado
+    baseColor.repeat.set(1, 3);
+    normalMap.repeat.set(1, 3);
+    armMap.repeat.set(1, 3);
+
+    const material = new THREE.MeshStandardMaterial({
+      map: baseColor,
+      normalMap: normalMap,
+      aoMap: armMap,
+      roughnessMap: armMap,
+      metalnessMap: armMap,
+      // Al usar mapas, el valor debe ser 1 para que el mapa defina la intensidad
+      metalness: 1,
+      roughness: 1,
+    });
+
+    return material;
+  }
+
+  /**
    * Carga el modelo GLB del bloque base
    */
   loadBlockModel(onSuccess: (gltf: Group) => void, onError: (error: unknown) => void): void {
