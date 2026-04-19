@@ -22,7 +22,7 @@
     </li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
-    <li><button class="dropdown-button"><img src="/assets/floor-Icon.svg" alt="piso"></button></li>
+    <li><button class="dropdown-button" (click)="buildFloor()"><img src="/assets/floor-Icon.svg" alt="piso"></button></li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
     <li><button class="dropdown-button"><img src="/assets/house-Icon.svg" alt="casa"></button></li>
@@ -54,6 +54,7 @@
       <p># de bloques construidos {{getNumBlocks()}}</p>
       <p># de columnas construidas {{getColumnCount()}}</p>
       <p># de bloques consecutivos {{getSecuenceBlocks()}}</p>
+      <p *ngIf="floorArea > 0">Área construida: {{ floorArea | number:'1.0-2' }} m²</p>
     </div>
   </div>
 
