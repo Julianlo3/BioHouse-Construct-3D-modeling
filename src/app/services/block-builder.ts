@@ -3,10 +3,10 @@ import * as THREE from 'three';
 import { SceneService } from './scene';
 import { AssetLoaderService } from './asset-loader';
 
-const LARGO     = 3.0;
-const ANCHO     = 0.4;
+const LARGO = 3.0;
+const ANCHO = 0.4;
 const HENDIDURA = 0.17;
-const DIST_COL  = 1.7;   // centro bloque → centro columna
+const DIST_COL = 1.7;   // centro bloque → centro columna
 
 @Injectable({ providedIn: 'root' })
 export class BlockBuilderService {
@@ -16,7 +16,7 @@ export class BlockBuilderService {
   private opacity = 1.0;
 
   // Contadores públicos
-  private numBlocks  = 0;
+  private numBlocks = 0;
   private numColumns = 0;
 
   // Seguimiento del segmento recto activo
@@ -31,7 +31,7 @@ export class BlockBuilderService {
   constructor(
     private sceneService: SceneService,
     private assetLoader: AssetLoaderService
-  ) {}
+  ) { }
 
   // ─── Carga del modelo ──────────────────────────────────────────────────────
 
@@ -39,22 +39,22 @@ export class BlockBuilderService {
     this.assetLoader.loadBlockModel(
       (gltf) => {
         const modelo = gltf;
-        const box    = new THREE.Box3().setFromObject(modelo);
-        const size   = new THREE.Vector3();
+        const box = new THREE.Box3().setFromObject(modelo);
+        const size = new THREE.Vector3();
         const center = new THREE.Vector3();
         box.getSize(size);
         box.getCenter(center);
 
         const escalaGral = LARGO / Math.max(size.x, size.z);
-        const escalaY    = 0.6 / size.y;
+        const escalaY = 0.6 / size.y;
 
         const contenedor = new THREE.Group();
-        contenedor.name  = 'muro';
+        contenedor.name = 'muro';
         modelo.scale.set(escalaGral, escalaY, escalaGral);
         modelo.position.set(-center.x * escalaGral, -box.min.y * escalaY, -center.z * escalaGral);
         contenedor.add(modelo);
 
-        this.moldeBloque  = contenedor;
+        this.moldeBloque = contenedor;
         this.alturaBloque = (box.max.y - box.min.y) * escalaGral;
 
         const mat = this.sceneService.getConcreteMaterial(this.opacity);
@@ -75,9 +75,9 @@ export class BlockBuilderService {
   // ─── API pública ───────────────────────────────────────────────────────────
 
   /** Primer bloque — colocado en coordenadas absolutas */
-  buildCube(x: number, z: number): void {
+  buildCube(x: number, z: number, blockSize: 'full' | 'half' = 'full'): void {
     if (!this.moldeBloque) return;
-    const cube = this.cloneWall();
+    const cube = this.cloneWall(blockSize);
     cube.position.set(x, 0, z);
     this.sceneService.add(cube);
     this.numBlocks++;
@@ -104,16 +104,17 @@ export class BlockBuilderService {
     offsetX: number,
     offsetZ: number,
     rotateY: boolean,
-    label: string
-  ): void {
-    if (!this.moldeBloque) return;
+    label: string,
+    newBlockSize: 'full' | 'half' = 'full'
+  ): boolean {
+    if (!this.moldeBloque) return false;
 
     const esGiro = label.startsWith('esquina') || label.startsWith('frontal') || label.startsWith('trasera');
 
     if (esGiro) {
-      this.colocarBloqueEsquina(selectedCube, offsetX, offsetZ, rotateY, label);
+      return this.colocarBloqueEsquina(selectedCube, offsetX, offsetZ, rotateY, label, newBlockSize);
     } else {
-      this.colocarBloqueRecto(selectedCube, offsetX, offsetZ, rotateY, label);
+      return this.colocarBloqueRecto(selectedCube, offsetX, offsetZ, rotateY, label, newBlockSize);
     }
   }
 
@@ -124,8 +125,9 @@ export class BlockBuilderService {
     offsetX: number,
     offsetZ: number,
     rotateY: boolean,
-    label: string
-  ): void {
+    label: string,
+    newBlockSize: 'full' | 'half'
+  ): boolean {
     // Dirección normalizada de este movimiento
     const dirX = Math.sign(offsetX);
     const dirZ = Math.sign(offsetZ);
@@ -135,18 +137,31 @@ export class BlockBuilderService {
       && this.segmento.dirX === dirX
       && this.segmento.dirZ === dirZ;
 
+    const addedLength = newBlockSize === 'half' ? 0.5 : 1.0;
+    const currentContador = mismaDireccion ? this.segmento!.contador : 0;
+    const refForLength = mismaDireccion ? this.segmento!.origen : ref;
+    
+    const lengthOrigen = refForLength.userData['blockSize'] === 'half' ? 0.5 : 1.0;
+
+    if (lengthOrigen + currentContador + addedLength > 6.0) {
+        window.alert('No se puede crear este bloque porque el tramo recto superaría el límite de 6 bloques. Por favor, realiza un giro o inserta un medio bloque.');
+        return false;
+    }
+
     if (!mismaDireccion) {
       // Nueva dirección → nuevo segmento, el origen es el bloque actual
       this.segmento = { origen: ref, dirX, dirZ, contador: 0 };
     }
 
-    // Paso efectivo entre centros: largo − hendidura
-    // Los offsets del overlay llegan como ±3 (largo completo),
-    // reducimos la hendidura para el efecto de encaje visual
-    const pasoX = dirX * (Math.abs(offsetX) - HENDIDURA);
-    const pasoZ = dirZ * (Math.abs(offsetZ) - HENDIDURA);
+    const refSize = ref.userData['blockSize'] === 'half' ? 'half' : 'full';
+    const L1 = refSize === 'half' ? 1.5 : 3.0;
+    const L2 = newBlockSize === 'half' ? 1.5 : 3.0;
+    const distCentroACentro = (L1 / 2) + (L2 / 2) - HENDIDURA;
 
-    const newCube = this.cloneWall();
+    const pasoX = dirX * distCentroACentro;
+    const pasoZ = dirZ * distCentroACentro;
+
+    const newCube = this.cloneWall(newBlockSize);
 
     // Rotación: si el bloque viene de un bloque girado (eje X), mantiene PI/2
     newCube.rotation.y = rotateY ? Math.PI / 2 : 0;
@@ -159,12 +174,12 @@ export class BlockBuilderService {
 
     this.sceneService.add(newCube);
     this.numBlocks++;
-    this.segmento!.contador++;
+    this.segmento!.contador += addedLength;
 
-    console.log(`Bloque recto "${label}" #${this.segmento!.contador} → X:${newCube.position.x} Z:${newCube.position.z}`);
+    console.log(`Bloque recto "${label}" longitud total:${lengthOrigen + this.segmento!.contador} → X:${newCube.position.x} Z:${newCube.position.z}`);
 
     // Cada 6 bloques consecutivos → columna en ambos extremos
-    if (this.segmento!.contador === 5) {
+    if (lengthOrigen + this.segmento!.contador === 6.0) {
       // Extremo delantero: junto al bloque recién colocado
       this.colocarColumna(newCube, dirX, dirZ, +1);
       // Extremo trasero: junto al bloque origen del segmento
@@ -173,6 +188,8 @@ export class BlockBuilderService {
       // El siguiente segmento parte desde el bloque recién colocado
       this.segmento = { origen: newCube, dirX, dirZ, contador: 0 };
     }
+
+    return true;
   }
 
   // ─── Bloque de esquina / giro ──────────────────────────────────────────────
@@ -182,9 +199,16 @@ export class BlockBuilderService {
     offsetX: number,
     offsetZ: number,
     rotateY: boolean,
-    label: string
-  ): void {
+    label: string,
+    newBlockSize: 'full' | 'half'
+  ): boolean {
     const isRefRotated = Math.abs(ref.rotation.y) > 0.1;
+
+    const refSize = ref.userData['blockSize'] === 'half' ? 'half' : 'full';
+    const L1 = refSize === 'half' ? 1.5 : 3.0;
+    const L2 = newBlockSize === 'half' ? 1.5 : 3.0;
+    const distCol1 = L1 / 2 + 0.2;
+    const distCol2 = L2 / 2 + 0.2;
 
     // Si el bloque REF está girado (largo en X) → columna va en extremo X
     // Si el bloque REF está recto (largo en Z) → columna va en extremo Z
@@ -193,12 +217,12 @@ export class BlockBuilderService {
 
     if (isRefRotated) {
       // Bloque girado: largo en X → columna en extremo X
-      colX = ref.position.x + Math.sign(offsetX) * DIST_COL;
+      colX = ref.position.x + Math.sign(offsetX) * distCol1;
       colZ = ref.position.z;
     } else {
       // Bloque recto: largo en Z → columna en extremo Z
       colX = ref.position.x;
-      colZ = ref.position.z + Math.sign(offsetZ) * DIST_COL;
+      colZ = ref.position.z + Math.sign(offsetZ) * distCol1;
     }
 
     // Insertar columna
@@ -217,16 +241,16 @@ export class BlockBuilderService {
     if (isRefRotated) {
       // Venía en X → bloque nuevo se aleja en Z desde la columna
       newX = colX;
-      newZ = colZ + Math.sign(offsetZ) * DIST_COL;
+      newZ = colZ + Math.sign(offsetZ) * distCol2;
     } else {
       // Venía en Z → bloque nuevo se aleja en X desde la columna
-      newX = colX + Math.sign(offsetX) * DIST_COL;
+      newX = colX + Math.sign(offsetX) * distCol2;
       newZ = colZ;
     }
 
     this.segmento = null;
 
-    const newCube = this.cloneWall();
+    const newCube = this.cloneWall(newBlockSize);
     newCube.rotation.y = rotateY ? Math.PI / 2 : 0;
     newCube.position.set(newX, ref.position.y, newZ);
 
@@ -234,6 +258,7 @@ export class BlockBuilderService {
     this.numBlocks++;
 
     console.log(`Bloque esquina "${label}" → X:${newX} Z:${newZ} rotY:${newCube.rotation.y.toFixed(2)}`);
+    return true;
   }
 
   // ─── Columnas ──────────────────────────────────────────────────────────────
@@ -258,12 +283,16 @@ export class BlockBuilderService {
     const mat = new THREE.MeshStandardMaterial({ color: 0x808080 });
     const col = new THREE.Mesh(geo, mat);
 
-    // La columna se pone al extremo del largo del bloque (DIST_COL desde su centro)
+    const refSize = refBloque.userData['blockSize'] === 'half' ? 'half' : 'full';
+    const L = refSize === 'half' ? 1.5 : 3.0;
+    const distCol = L / 2 + 0.2;
+
+    // La columna se pone al extremo del largo del bloque (distCol desde su centro)
     // en la misma dirección de avance del segmento
     col.position.set(
-      refBloque.position.x + dirX * DIST_COL * lado,
+      refBloque.position.x + dirX * distCol * lado,
       0,
-      refBloque.position.z + dirZ * DIST_COL * lado
+      refBloque.position.z + dirZ * distCol * lado
     );
 
     this.sceneService.add(col);
@@ -283,19 +312,18 @@ export class BlockBuilderService {
     const actuales = this.sceneService.getWalls();
     const nuevos: THREE.Object3D[] = [];
 
-    const separacionBloques:number = 0.08
-
     actuales.forEach(bloque => {
       const yaExiste = actuales.some(b =>
         Math.abs(b.position.x - bloque.position.x) < 0.1 &&
         Math.abs(b.position.z - bloque.position.z) < 0.1 &&
-        Math.abs(b.position.y - (bloque.position.y + this.alturaBloque + separacionBloques)) < 0.1
+        Math.abs(b.position.y - (bloque.position.y + this.alturaBloque + 0.2)) < 0.1
       );
       if (!yaExiste) {
-        const muro = this.cloneWall();
+        const blockSize = bloque.userData['blockSize'] === 'half' ? 'half' : 'full';
+        const muro = this.cloneWall(blockSize);
         muro.position.copy(bloque.position);
         muro.rotation.copy(bloque.rotation);
-        muro.position.y += this.alturaBloque + separacionBloques;
+        muro.position.y += this.alturaBloque + 0.2;
         nuevos.push(muro);
       }
     });
@@ -306,14 +334,20 @@ export class BlockBuilderService {
 
   // ─── Utilidades ────────────────────────────────────────────────────────────
 
-  private cloneWall(): THREE.Object3D {
+  private cloneWall(blockSize: 'full' | 'half' = 'full'): THREE.Object3D {
     const clone = this.moldeBloque!.clone();
-    clone.name  = 'muro';
+    clone.name = 'muro';
+    clone.userData['blockSize'] = blockSize;
+
+    if (blockSize === 'half') {
+      clone.scale.z = 0.5;
+    }
+
     clone.traverse(h => {
       if (h instanceof THREE.Mesh) {
         const mat = (h.material as THREE.MeshStandardMaterial).clone();
         mat.transparent = true;
-        mat.opacity     = this.opacity;
+        mat.opacity = this.opacity;
         mat.needsUpdate = true;
         h.material = mat;
         h.castShadow = h.receiveShadow = true;
@@ -328,9 +362,9 @@ export class BlockBuilderService {
     this.sceneService.updateWallsOpacity(v);
   }
 
-  getBlockCount():       number { return this.numBlocks; }
-  getColumnCount():      number { return this.numColumns; }
-  getBlockHeight():      number { return this.alturaBloque; }
-  getBlockMold():        THREE.Object3D | null { return this.moldeBloque; }
-  decrementBlockCount(): void   { this.numBlocks--; }
+  getBlockCount(): number { return this.numBlocks; }
+  getColumnCount(): number { return this.numColumns; }
+  getBlockHeight(): number { return this.alturaBloque; }
+  getBlockMold(): THREE.Object3D | null { return this.moldeBloque; }
+  decrementBlockCount(): void { this.numBlocks--; }
 }

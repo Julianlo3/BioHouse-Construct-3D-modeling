@@ -41,7 +41,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     private selectionService: SelectionService,
     private decorationService: DecorationService,
     private overlayService: OverlayService
-  ) {}
+  ) { }
 
   // ─── Estado general ───────────────────────────────────────────────────────
   private subscription: Subscription = new Subscription();
@@ -221,19 +221,24 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
       console.log(`Construyendo hacia: ${config.label}`);
 
-      if (!selectedCube.userData['ocupados']) {
-        selectedCube.userData['ocupados'] = [];
-      }
-      selectedCube.userData['ocupados'].push(config.label)
+      const newBlockSize = this.cubeSelectionService.getBlockSize();
 
-      this.blockBuilder.createBlockFromSelection(
+      const success = this.blockBuilder.createBlockFromSelection(
         selectedCube,
         config.offsetX,
         config.offsetZ,
         config.rotateY,
-        config.label
+        config.label,
+        newBlockSize
       );
-      this.updateButtonPosition();
+
+      if (success) {
+        if (!selectedCube.userData['ocupados']) {
+          selectedCube.userData['ocupados'] = [];
+        }
+        selectedCube.userData['ocupados'].push(config.label);
+        this.updateButtonPosition();
+      }
     }
   }
 

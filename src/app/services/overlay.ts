@@ -48,14 +48,15 @@ export class OverlayService {
     const pos       = selectedCube.position;
     const isRotated = Math.abs(selectedCube.rotation.y) > 0.1;
 
-    const L = 3.0;        // Largo del bloque
+    const blockSize = selectedCube.userData['blockSize'] === 'half' ? 'half' : 'full';
+    const L = blockSize === 'half' ? 1.5 : 3.0;        // Largo del bloque seleccionado
     const W = 0.4;        // Ancho del bloque
-    const halfL = L / 2;  // 1.5m
+    const halfL = L / 2;  // 1.5m o 0.75m
     const halfW = W / 2;  // 0.2m
 
     // Offsets para encaje perfecto de caras
-    const offEsquinaX = halfL + halfW; // 1.7m
-    const offEsquinaZ = halfL - halfW; // 1.3m
+    const offEsquinaX = halfL + halfW; 
+    const offEsquinaZ = halfL - halfW; 
 
     // Separación visual de los botones respecto al modelo
     const sepX = 0.5;

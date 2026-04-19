@@ -13,6 +13,8 @@ import { BlockBuilderService } from '../../services/block-builder';
 export class ActionsModel implements OnInit, OnDestroy {
   isMenuOpen = false;
   isAddBrickActive = false;
+  isBlockSubMenuOpen = false;
+  currentBlockSize: 'full' | 'half' = 'full';
   isWallActive = false;
   isDecorationsActive = false;
   isDecorationSubMenuOpen = false;
@@ -41,6 +43,11 @@ export class ActionsModel implements OnInit, OnDestroy {
         this.opacity = value;
       })
     );
+    this.subscription.add(
+      this.cubeSelectionService.blockSize$.subscribe(size => {
+        this.currentBlockSize = size;
+      })
+    );
   }
 
 
@@ -52,17 +59,26 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.isMenuOpen = !this.isMenuOpen;
   }
 
-  onAddBrick() {
-    const isCurrentlyActive = this.cubeSelectionService.isRaycasterActive();
+  toggleBlockSubMenu() {
+    this.isBlockSubMenuOpen = !this.isBlockSubMenuOpen;
+  }
 
-    if (isCurrentlyActive) {
-      // Desactivar raycaster
+  onAddBrick(size: 'full' | 'half') {
+    const isCurrentlyActive = this.cubeSelectionService.isRaycasterActive();
+    this.cubeSelectionService.setBlockSize(size);
+
+    if (isCurrentlyActive && this.currentBlockSize === size) {
+      // Desactivar raycaster solo si se vuelve a clickear la misma opción
       this.cubeSelectionService.setRaycasterActive(false);
       document.body.classList.remove('mouse-red-cursor');
+      this.isBlockSubMenuOpen = false;
     } else {
       // Activar raycaster
-      this.cubeSelectionService.requestSelectCube();
+      if (!isCurrentlyActive) {
+        this.cubeSelectionService.requestSelectCube();
+      }
       document.body.classList.add('mouse-red-cursor');
+      this.isBlockSubMenuOpen = false;
     }
   }
 
