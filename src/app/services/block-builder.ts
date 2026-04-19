@@ -283,17 +283,19 @@ export class BlockBuilderService {
     const actuales = this.sceneService.getWalls();
     const nuevos: THREE.Object3D[] = [];
 
+    const separacionBloques:number = 0.08
+
     actuales.forEach(bloque => {
       const yaExiste = actuales.some(b =>
         Math.abs(b.position.x - bloque.position.x) < 0.1 &&
         Math.abs(b.position.z - bloque.position.z) < 0.1 &&
-        Math.abs(b.position.y - (bloque.position.y + this.alturaBloque)) < 0.1
+        Math.abs(b.position.y - (bloque.position.y + this.alturaBloque + separacionBloques)) < 0.1
       );
       if (!yaExiste) {
         const muro = this.cloneWall();
         muro.position.copy(bloque.position);
         muro.rotation.copy(bloque.rotation);
-        muro.position.y += this.alturaBloque;
+        muro.position.y += this.alturaBloque + separacionBloques;
         nuevos.push(muro);
       }
     });
