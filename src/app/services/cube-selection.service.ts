@@ -14,6 +14,9 @@ export class CubeSelectionService {
   private construirMuro = new Subject<void>();
   construirMuro$ = this.construirMuro.asObservable();
 
+  private blockSizeSubject = new BehaviorSubject<'full' | 'half'>('full');
+  blockSize$ = this.blockSizeSubject.asObservable();
+
   private decorationActiveSubject = new BehaviorSubject<boolean>(false);
   decorationActive$ = this.decorationActiveSubject.asObservable();
 
@@ -53,5 +56,13 @@ export class CubeSelectionService {
 
   requestAddDecoration(decorationType: string): void {
     this.addDecoration.next(decorationType);
+  }
+
+  setBlockSize(size: 'full' | 'half'): void {
+    this.blockSizeSubject.next(size);
+  }
+
+  getBlockSize(): 'full' | 'half' {
+    return this.blockSizeSubject.value;
   }
 }

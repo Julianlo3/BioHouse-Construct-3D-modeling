@@ -1,7 +1,13 @@
 <div id="actionButons">
   <button class="main-button" (click)="toggleMenu()"><img src="/assets/options-Icon.svg" alt="Opciones"></button>
   <ul class="dropdown-menu" [class.open]="isMenuOpen">
-    <li id="AddBrick"><button class="dropdown-button" [class.active]="isAddBrickActive" (click)="onAddBrick()"><img src="/assets/brick-Icon.svg" alt="ladrillo"></button></li>
+    <li id="AddBrick" class="has-submenu">
+      <button class="dropdown-button" [class.active]="isAddBrickActive" (click)="toggleBlockSubMenu()"><img src="/assets/brick-Icon.svg" alt="ladrillo"></button>
+      <ul class="decoration-submenu" [class.open]="isBlockSubMenuOpen">
+        <li><button class="decoration-button" [style.background]="currentBlockSize === 'full' ? 'rgba(255,255,255,0.2)' : 'transparent'" (click)="onAddBrick('full')">Completo</button></li>
+        <li><button class="decoration-button" [style.background]="currentBlockSize === 'half' ? 'rgba(255,255,255,0.2)' : 'transparent'" (click)="onAddBrick('half')">Medio</button></li>
+      </ul>
+    </li>
     <img src="/assets/next-Icon.svg" alt="next">
     <img src="/assets/next-Icon.svg" alt="next">
     <li id="Wall"><button class="dropdown-button" [class.active]="isWallActive" (click)="buildWall()"><img src="/assets/wall-Icon.svg" alt="muro"></button></li>
