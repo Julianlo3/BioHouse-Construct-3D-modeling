@@ -1,0 +1,171 @@
+{
+  "info": {
+    "_postman_id": "321f5bc6-b11e-43d0-a0b1-12c315fca0dd",
+    "name": "Biohouse Model3D API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38802811",
+    "_collection_link": "https://go.postman.co/collection/38802811-321f5bc6-b11e-43d0-a0b1-12c315fca0dd?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Save Model",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Casa Bioclimática V1\",\n    \"description\": \"Modelo con paneles solares y aislamiento térmico\",\n    \"materials\": [\n        {\n            \"typeMaterial\": \"Madera\",\n            \"positionX\": 1.0,\n            \"positionY\": 0.0,\n            \"positionZ\": 5.5,\n            \"rotationX\": 0.0,\n            \"rotationY\": 90.0,\n            \"rotationZ\": 0.0,\n            \"opacity\": 1.0,\n            \"assetPath\": \"/assets/wood_texture.png\"\n        }\n    ],\n    \"owner\": {\n        \"id\": 1,\n        \"username\": \"admin\",\n        \"email\": \"admin@biohouse.co\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/models/save",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "models",
+            "save"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Models by User",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1,\n    \"username\": \"admin\",\n    \"email\": \"admin@biohouse.co\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/models/user/list",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "models",
+            "user",
+            "list"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search Model",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/models/search",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "models",
+            "search"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Model",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/models/delete",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "models",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Model",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1,\n    \"title\": \"Casa Bioclimática V1\",\n    \"description\": \"Modelo con paneles solares y aislamiento térmico\",\n    \"materials\": [\n        {\n            \"typeMaterial\": \"MaderaPepe\",\n            \"positionX\": 1.0,\n            \"positionY\": 0.0,\n            \"positionZ\": 5.5,\n            \"rotationX\": 0.0,\n            \"rotationY\": 90.0,\n            \"rotationZ\": 0.0,\n            \"opacity\": 1.0,\n            \"assetPath\": \"/assets/wood_texture.png\"\n        }\n    ],\n    \"owner\": {\n        \"id\": 1,\n        \"username\": \"admin\",\n        \"email\": \"admin@biohouse.co\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/models/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "models",
+            "update"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"Status code is 2xx\", function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
