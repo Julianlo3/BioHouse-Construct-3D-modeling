@@ -1,12 +1,10 @@
 spring:
   datasource:
-    # Cadena de conexión estándar para PostgreSQL
-    url: jdbc:postgresql://localhost:45001/Construction3D
-    username: model3d
-    password: pass123
+    url: jdbc:postgresql://ep-fancy-haze-amupuyi4-pooler.c-5.us-east-1.aws.neon.tech/monolitodb?sslmode=require
+    username: neondb_owner
+    password: npg_mbAVYt0LR8zd
     driver-class-name: org.postgresql.Driver
-    
-    # Configuración de HikariCP
+
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -17,12 +15,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      # 'update' crea o actualiza las tablas automáticamente según tus clases Java
-      ddl-auto: create
+      ddl-auto: update   # ⚠️ cambia esto, te explico abajo
     show-sql: true
     properties:
-        hibernate:
-            format_sql: true
+      hibernate:
+        format_sql: true
     defer-datasource-initialization: true
 
   sql:
