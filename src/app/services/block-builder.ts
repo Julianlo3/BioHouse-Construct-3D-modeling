@@ -79,6 +79,10 @@ export class BlockBuilderService {
     if (!this.moldeBloque) return;
     const cube = this.cloneWall(blockSize);
     cube.position.set(x, 0, z);
+    // Información para guardado y crargado de modelo
+    cube.userData['isModelElement'] = true;
+    cube.userData['typeMaterial'] = blockSize === 'half' ? 'block-half' : 'block-full';
+    cube.userData['assetPath'] = 'buildBlock';
     this.sceneService.add(cube);
     this.numBlocks++;
   }
@@ -171,7 +175,9 @@ export class BlockBuilderService {
       ref.position.y,
       ref.position.z + pasoZ
     );
-
+    newCube.userData['isModelElement'] = true;
+    newCube.userData['typeMaterial'] = newBlockSize === 'half' ? 'block-half' : 'block-full';
+    newCube.userData['assetPath'] = 'buildBlock';
     this.sceneService.add(newCube);
     this.numBlocks++;
     this.segmento!.contador += addedLength;
@@ -256,6 +262,9 @@ export class BlockBuilderService {
     newCube.rotation.y = rotateY ? Math.PI / 2 : 0;
     newCube.position.set(newX, ref.position.y, newZ);
 
+    newCube.userData['isModelElement'] = true;
+    newCube.userData['typeMaterial'] = newBlockSize === 'half' ? 'block-half' : 'block-full';
+    newCube.userData['assetPath'] = 'buildBlock';
     this.sceneService.add(newCube);
     this.numBlocks++;
 
@@ -298,6 +307,9 @@ export class BlockBuilderService {
       refBloque.position.z + dirZ * distCol * lado
     );
 
+    col.userData['isModelElement'] = true;
+    col.userData['typeMaterial'] = 'column';
+    col.userData['assetPath'] = 'column';
     this.sceneService.add(col);
     this.numColumns++;
 
@@ -503,6 +515,9 @@ export class BlockBuilderService {
       }
     }
 
+    floorMesh.userData['isModelElement'] = true;
+    floorMesh.userData['typeMaterial'] = 'floor';
+    floorMesh.userData['assetPath'] = 'floor';
     this.sceneService.add(floorMesh);
 
     return area;

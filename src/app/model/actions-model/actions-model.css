@@ -1,226 +1,216 @@
+:root {
+  --nat-1: #38752E; /* Verde muy oscuro */
+  --nat-2: #B6F7AA; /* Verde claro */
+  --nat-3: #76F55F; /* Verde brillante */
+  --nat-4: #567551; /* Verde mate */
+  --nat-5: #5DC24C; /* Verde medio */
+  --white: #ffffff;
+  --black: #000000;
+}
+
+/* Contenedor General */
 #actionButons {
   position: fixed;
-  top: 2vh;
-  left: 2vh;
-  display: block;
-  z-index: 1000;
-}
-
-#actionButons {
-  position: fixed;
-  top: 2vh;
-  left: 2vh;
-  display: block;
-  z-index: 1000;
-}
-
-#opacityControl {
-  position: absolute;
-  top: calc(6vh + 2vh);
-  left: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.main-button {
-  width: 6vh;
-  height: 6vh;
-  padding: 0;
-  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
-  border: 2px solid #2d9547;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#lineGuides{
-  position: relative;
-  top: 10vh;
-}
-
-.main-button:hover {
-  background-color: #2d9547;
-}
-
-.dropdown-menu {
-  position: absolute;
   top: 0;
-  left: calc(100% + 2vh);
-  list-style: none;
-  padding: 1vh;
-  margin: 0;
-  display: flex;
-  flex-direction: row;
-  gap: 0;
-  transition: opacity 0.3s ease-in-out;
-  opacity: 0;
+  left: 0;
+  width: 100vw;
   pointer-events: none;
+  z-index: 1000;
 }
 
-.dropdown-menu.open {
-  opacity: 1;
+/* Barra de Navegación Central */
+.center-nav {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
   pointer-events: auto;
+  background-color: var(--nat-1);
+  padding: 10px 25px;
+  border-radius: 12px;
+  border: 1px solid var(--nat-4);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
-.dropdown-button {
-  width: 6vh;
-  height: 6vh;
-  padding: 0;
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Botones Principales con Gradiente */
+.action-button.main-dark {
+  width: 50px;
+  height: 50px;
+  /* Gradiente solicitado */
   background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
-  border: 2px solid #2d9547;
+  border: 2px solid var(--nat-1);
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  animation: slideIn 0.3s ease-out forwards;
 }
 
-.dropdown-menu.open .dropdown-button:nth-child(1) {
-  animation-delay: 0.05s;
+.action-button.main-dark:hover {
+  filter: brightness(1.1);
+  border-color: var(--white);
 }
 
-.dropdown-menu.open .dropdown-button:nth-child(2) {
-  animation-delay: 0.1s;
+/* Estado activo en Blanco */
+.action-button.main-dark.active {
+  background: var(--white);
+  border-color: var(--nat-2);
+  box-shadow: 0 0 15px var(--nat-3);
 }
 
-.dropdown-menu.open .dropdown-button:nth-child(3) {
-  animation-delay: 0.15s;
+/* Invertir color de icono si el fondo es blanco (opcional) */
+.action-button.main-dark.active img {
+  filter: invert(1) brightness(0.5);
 }
 
-.dropdown-menu.open .dropdown-button:nth-child(4) {
-  animation-delay: 0.2s;
+.action-button img {
+  width: 26px;
 }
 
-.dropdown-menu.open .dropdown-button:nth-child(5) {
-  animation-delay: 0.25s;
-}
-
-.dropdown-button.active {
-  background-color: #2d9547;
-  border-color: #b4d435;
-  box-shadow: 0 0 10px rgba(180, 212, 53, 0.5);
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-#tutorials {
-  position: fixed;
-  top: 2vh;
-  right: 2vh;
-  display: inline-block;
-  z-index: 1000;
-  max-width: 300px;
-}
-
-#messageBox {
-  background-color: white;
-  color: black;
-  padding: 1rem;
-  border-radius: 3px;
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: 500;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-  pointer-events: none;
-}
-
-#messageBox.show {
-  opacity: 1;
-  visibility: visible;
+/* Panel Lateral Agrupado */
+.side-panel {
+  position: absolute;
+  top: 90px;
+  left: 20px;
   pointer-events: auto;
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid var(--nat-1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 220px;
 }
 
-#camare {
-  position: fixed;
-  bottom: 2vh;
-  left: 2vh;
-  display: inline-block;
-  z-index: 1000;
-}
-.mouse-red-cursor {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='red'/%3E%3C/svg%3E"), auto !important;
+#opacityControl {
+  color: var(--nat-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: bold;
 }
 
-.has-submenu {
-  position: relative;
+#opacityControl input {
+  cursor: pointer;
+  accent-color: var(--nat-3);
 }
+
+.guias-btn {
+  width: 100%;
+  background-color: var(--nat-1);
+  color: var(--white);
+  border: 1px solid var(--nat-5);
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.guias-btn.active {
+  background-color: var(--nat-3);
+  color: var(--black);
+}
+
+#metricas {
+  color: var(--nat-2);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border-top: 1px solid var(--nat-4);
+  padding-top: 10px;
+}
+
+/* Submenús alineados con Tipografía Negra */
+.has-submenu { position: relative; }
 
 .decoration-submenu {
   position: absolute;
   top: 100%;
   left: 0;
-  list-style: none;
-  padding: 0.5vh;
-  margin: 0.5vh 0 0 0;
-  display: flex;
+  margin-top: 10px;
+  background-color: var(--white); /* Fondo claro para que resalte el texto negro */
+  border: 2px solid var(--nat-1);
+  padding: 6px;
+  border-radius: 6px;
+  display: none;
   flex-direction: column;
-  gap: 0.5vh;
-  background-color: #2d9547;
-  border: 2px solid #2d9547;
-  border-radius: 8px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease-in-out;
+  gap: 5px;
   min-width: 120px;
   z-index: 1001;
 }
 
-.decoration-submenu.open {
-  opacity: 1;
+.decoration-submenu.open { display: flex; }
+
+.decoration-button {
+  background-color: var(--nat-2);
+  color: var(--black); /* Tipografía negra solicitada */
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.decoration-button:hover { 
+  background-color: var(--nat-5); 
+  color: var(--white); /* Cambio a blanco en hover para feedback visual */
+}
+
+/* Tutoriales y Cámara */
+#tutorials {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  pointer-events: none; /* Evita bloquear interacciones si no hay mensaje */
+}
+
+#messageBox {
+  /* Fondo negro sólido con ligera transparencia para profundidad */
+  background-color: rgba(0, 0, 0, 0.9); 
+  
+  /* Texto en verde claro de la paleta para coherencia visual */
+  color: var(--nat-2); 
+  
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--nat-1); /* Borde verde oscuro para definir el área */
+  
+  max-width: 300px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  
+  /* Animación de visibilidad */
+  display: none;
   pointer-events: auto;
 }
 
-.decoration-button {
-  padding: 0.8vh 1.2vh;
-  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
-  border: 1px solid #2d9547;
-  border-radius: 4px;
-  cursor: pointer;
-  color: #2d9547;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  animation: slideInDecoration 0.3s ease-out forwards;
+#messageBox.show {
+  display: block;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-.decoration-submenu.open .decoration-button:nth-child(1) {
-  animation-delay: 0.05s;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.decoration-submenu.open .decoration-button:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-.decoration-button:hover {
-  background-color: #b4d435;
-  border-color: #2d9547;
-}
-
-@keyframes slideInDecoration {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+#camare {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
 }

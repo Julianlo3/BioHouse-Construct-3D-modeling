@@ -19,6 +19,7 @@ import { BlockBuilderService } from '../../services/block-builder';
 import { SelectionService } from '../../services/selection';
 import { DecorationService } from '../../services/decoration';
 import { OverlayService } from '../../services/overlay';
+import { ModelStateService } from '../../services/ModelStateService';
 
 @Component({
   selector: 'app-model3d',
@@ -40,7 +41,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     private blockBuilder: BlockBuilderService,
     private selectionService: SelectionService,
     private decorationService: DecorationService,
-    private overlayService: OverlayService
+    private overlayService: OverlayService,
+    private modelStateService: ModelStateService
   ) { }
 
   // ─── Estado general ───────────────────────────────────────────────────────
@@ -131,6 +133,12 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.subscription.add(
       this.cubeSelectionService.opacity$.subscribe((value: number) => {
         this.blockBuilder.setOpacity(value);
+      })
+    );
+
+    this.subscription.add(
+      this.cubeSelectionService.saveModel$.subscribe(() => {
+        this.saveModel();
       })
     );
   }
@@ -296,4 +304,24 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.sceneService.getControls()?.update();
     this.sceneService.render();
   };
+
+  // =========================================================================
+  // Guardado del modelo
+  // =========================================================================
+
+  saveModel() {
+    // Obtenemos los objetos que representan la casa (bloques, ventanas, etc.)
+    const houseElements = this.sceneService.getScene().children.filter(
+      obj => obj.userData['isModelElement'] === true
+    );
+
+    this.modelStateService.save(houseElements).subscribe({
+      next: (response) => {
+        console.log('Modelo guardado con éxito', response);
+        // Actualizar ID local si es un modelo nuevo
+      },
+      error: (err) => console.error('Error al guardar', err)
+    });
+  }
+
 }

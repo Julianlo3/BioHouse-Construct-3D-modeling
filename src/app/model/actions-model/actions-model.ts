@@ -159,4 +159,10 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.cubeSelectionService.setRaycasterActive(false);
     document.body.classList.remove('mouse-red-cursor');
   }
+
+  saveModel() {
+    this.cubeSelectionService.requestSaveModel();
+    window.alert('Modelo guardado');
+  }
+
 }

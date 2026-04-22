@@ -1,37 +1,46 @@
 #information {
   width: 100%;
-  min-height: 100vh;
+  /* Cambiado de 100vh a auto para que no fuerce espacio vacío */
+  min-height: auto; 
   background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
-  padding: 6vh 3vh;
+  /* Reducido el padding vertical de 6vh a 4vh */
+  padding: 4vh 3vh; 
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4vh;
+  /* Reducido el gap de 6vh a 4vh para compactar el diseño */
+  gap: 4vh; 
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 #information h3 {
   color: #ffffff;
-  font-size: 4.5vh;
+  font-size: 4.5vh; /* Ligeramente más pequeño para ahorrar espacio */
   margin: 0;
   text-align: center;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15vh;
+  text-shadow: 0 0.4vh 0.8vh rgba(0, 0, 0, 0.2);
 }
 
 #tools {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 2vh;
+  gap: 3vh; /* Reducido de 4vh a 3vh */
   width: 100%;
   max-width: 1200px;
 }
 
 .modelTool {
-  width: 20%;
-  aspect-ratio: 1 / 1;
+  /* Tamaño de círculos optimizado para que no ocupen tanto alto */
+  width: 20vh; 
+  height: 20vh;
   border-radius: 50%;
-  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
-  border: 0.3vh solid #2d9547;
+  background: linear-gradient(135deg, #2d9547 0%, #1e6631 100%);
+  border: 0.4vh solid #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -40,70 +49,71 @@
   padding: 2vh;
   box-sizing: border-box;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0.8vh 1.5vh rgba(0, 0, 0, 0.15);
 }
 
 .modelTool:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0.8vh 1.6vh rgba(27, 67, 50, 0.3);
+  transform: scale(1.08) translateY(-0.5vh);
+  box-shadow: 0 1.2vh 2.5vh rgba(0, 0, 0, 0.3);
+  border-color: #b4d435;
 }
 
 .modelTool img {
-  width: 10vh;
-  height: 10vh;
-  object-fit: cover;
-  border-radius: 50%;
+  width: 5vh; /* Reducido un poco */
+  height: 5vh;
+  filter: brightness(0) invert(1);
 }
 
 .modelTool p {
   color: #ffffff;
-  font-size: 2vh;
+  font-size: 1.4vh; /* Ajustado para que el círculo no necesite ser tan grande */
+  line-height: 1.2;
+  font-weight: 600;
   text-align: center;
   margin: 0;
   word-wrap: break-word;
 }
 
 .btn-create {
-  background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
+  background: #ffffff;
   color: #2d9547;
-  border: 0.3vh solid #2d9547;
-  padding: 2.5vh 3vh;
+  border: none;
+  padding: 2vh 4.5vh; /* Padding más ajustado */
   font-size: 2.2vh;
-  border-radius: 0.5vh;
+  border-radius: 4vh;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: bold;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: 0 0.8vh 2vh rgba(0, 0, 0, 0.2);
+  margin-top: 1vh; /* Reducido el margen superior */
 }
 
 .btn-create:hover {
-  background-color: #2d9547;
+  background-color: #1e3d18;
   color: #ffffff;
   transform: scale(1.05);
 }
 
-@media (max-width: 1024px) {
-  #tools {
-    gap: 1.5vh;
-  }
-
-  .modelTool {
-    width: 18vh;
-    height: 18vh;
-  }
-}
-
+/* Ajustes de Responsividad */
 @media (max-width: 768px) {
-  .modelTool {
-    width: 15vh;
-    height: 15vh;
+  #information {
+    padding: 3vh 2vh;
+    gap: 3vh;
   }
-
-  .modelTool img {
-    width: 7vh;
-    height: 7vh;
-  }
-
+  
   #information h3 {
-    font-size: 2.2vh;
+    font-size: 3vh;
+  }
+  
+  .modelTool {
+    width: 16vh;
+    height: 16vh;
+  }
+
+  .btn-create {
+    font-size: 1.8vh;
+    padding: 1.5vh 3.5vh;
   }
 }

@@ -26,6 +26,9 @@ export class CubeSelectionService {
   private addDecoration = new Subject<string>();
   addDecoration$ = this.addDecoration.asObservable();
 
+  private saveModel = new Subject<void>();
+  saveModel$ = this.saveModel.asObservable();
+
   requestSelectCube(): void {
     this.selectCubeSubject.next();
   }
@@ -64,5 +67,9 @@ export class CubeSelectionService {
 
   getBlockSize(): 'full' | 'half' {
     return this.blockSizeSubject.value;
+  }
+
+  requestSaveModel(): void {
+    this.saveModel.next();
   }
 }

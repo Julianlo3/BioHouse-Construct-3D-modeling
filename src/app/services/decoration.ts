@@ -41,6 +41,14 @@ export class DecorationService {
     this.isAddingDecoration = true;
     this.numRotation = 0;
 
+    // Solo se permie iniciar decoraciona bloque completo
+
+    if (selectedCube?.userData['blockSize'] === 'half') {
+      alert('Solo se puede agregar decoración a bloques completos. Por favor, selecciona un bloque completo.');
+      this.isAddingDecoration = false;
+      return;
+    }
+
     if (selectedCube) {
       this.decorationTargetPosition = selectedCube.position.clone();
     } else {
@@ -61,6 +69,10 @@ export class DecorationService {
 
     if (this.decorationTargetPosition) {
       this.selectionMesh.position.copy(this.decorationTargetPosition);
+      // Ajustar altura para que no quede enterrado en el piso
+      if(this.decorationTargetPosition.y <= 0.5) {
+        this.selectionMesh.position.y += 0.05;
+      }
     } else {
       this.selectionMesh.position.set(0.5, 0.05, 0.5);
     }
@@ -180,25 +192,15 @@ export class DecorationService {
           });
         }
 
-        // Ajustes de posición según tipo
+          // Ajustes de posición según tipo
         if (modelType === 'window') {
           newDecoration.position.y -= 2;
           newDecoration.position.z -= 1;
           if (!(this.numRotation % 2 === 0)) {
-            newDecoration.position.x += 0.4;
-            newDecoration.position.z += 0.6;
+            newDecoration.position.z += 1;
           } else {
-            newDecoration.position.x -= 0.4;
-          }
-        }
-
-        if (modelType === 'door') {
-          if (!(this.numRotation % 2 === 0)) {
-            newDecoration.position.x += 0.5;
-            newDecoration.position.z -= 0.4;
-          } else {
-            newDecoration.position.z += 0.5;
-            newDecoration.position.x -= 0.4;
+            newDecoration.position.x += 0.2;
+            newDecoration.position.z += 0.8;
           }
         }
 
@@ -209,6 +211,9 @@ export class DecorationService {
           newDecoration.rotation.x = -Math.PI / 2;
         }
 
+        newDecoration.userData['isModelElement'] = true;
+        newDecoration.userData['typeMaterial'] = modelType === 'door' ? 'door' : 'window';
+        newDecoration.userData['assetPath'] = modelPath;
         this.sceneService.add(newDecoration);
       },
       (error) => console.error('Error cargando decoración:', error)
