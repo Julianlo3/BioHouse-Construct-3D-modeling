@@ -20,6 +20,7 @@ import { SelectionService } from '../../services/selection';
 import { DecorationService } from '../../services/decoration';
 import { OverlayService } from '../../services/overlay';
 import { ModelStateService } from '../../services/ModelStateService';
+import { FloorManagerService } from '../../services/floor-manager';
 
 @Component({
   selector: 'app-model3d',
@@ -42,7 +43,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     private selectionService: SelectionService,
     private decorationService: DecorationService,
     private overlayService: OverlayService,
-    private modelStateService: ModelStateService
+    private modelStateService: ModelStateService,
+    private floorManager: FloorManagerService
   ) { }
 
   // ─── Estado general ───────────────────────────────────────────────────────
@@ -101,7 +103,9 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
 
     // Cargar el modelo del bloque
     this.blockBuilder.loadBlockModel(() => {
-      this.blockBuilder.buildCube(0, 0);
+      this.blockBuilder.buildCube(0, 0, 'full', 1);
+      // Marcar retroactivamente muros del piso 1
+      this.floorManager.markExistingWallsAsFloor1(this.sceneService.getWalls());
       this.animate();
     });
   }
@@ -139,6 +143,12 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     this.subscription.add(
       this.cubeSelectionService.saveModel$.subscribe(() => {
         this.saveModel();
+      })
+    );
+
+    this.subscription.add(
+      this.cubeSelectionService.addFloor$.subscribe(() => {
+        this.handleAddFloor();
       })
     );
   }
@@ -202,6 +212,48 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     // Como ya existe 1 bloque base, construimos 16 niveles adicionales para llegar a 17 en total.
     this.blockBuilder.buildFloors(16);
     this.updateButtonPosition();
+  }
+
+  /**
+   * Agrega un nuevo piso:
+   * 1. Llama a FloorManager para crear la losa del nuevo nivel.
+   * 2. Coloca un bloque inicial en el borde de la estructura como guía.
+   * 3. Selecciona ese bloque para que el usuario pueda empezar a construir desde él.
+   */
+  handleAddFloor(): void {
+    // Recolectar muros del piso activo ANTES de cambiar de nivel
+    const currentLevel = this.floorManager.getActiveFloorLevel();
+    const currentWalls = this.sceneService.getWalls(currentLevel);
+
+    if (currentWalls.length === 0) {
+      window.alert('El piso actual no tiene muros. Construye al menos un muro antes de agregar otro piso.');
+      return;
+    }
+
+    const result = this.floorManager.addFloor(currentWalls);
+    if (!result) {
+      window.alert('Se alcanzó el máximo de 5 pisos.');
+      return;
+    }
+
+    // Sincronizar el nivel en CubeSelectionService
+    this.cubeSelectionService.setFloorLevel(result.baseY === 0 ? 1 : this.floorManager.getActiveFloorLevel());
+
+    // Colocar bloque inicial del nuevo piso en el borde detectado
+    this.blockBuilder.buildCube(
+      result.x,
+      result.z,
+      'full',
+      this.floorManager.getActiveFloorLevel()
+    );
+
+    // Seleccionar el bloque recién creado
+    const walls = this.sceneService.getWalls(this.floorManager.getActiveFloorLevel());
+    const starterBlock = walls[walls.length - 1];
+    if (starterBlock) {
+      this.selectionService.selectCube(starterBlock);
+      this.updateButtonPosition();
+    }
   }
 
   // =========================================================================

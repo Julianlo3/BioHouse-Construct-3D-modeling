@@ -3,6 +3,7 @@ import { CubeSelectionService } from '../../services/cube-selection.service';
 import { Subscription } from 'rxjs';
 import { SceneService } from '../../services/scene';
 import { BlockBuilderService } from '../../services/block-builder';
+import { FloorManagerService, FloorData } from '../../services/floor-manager';
 
 import { CommonModule } from '@angular/common';
 
@@ -23,11 +24,18 @@ export class ActionsModel implements OnInit, OnDestroy {
   opacity = 1.0;
   guiasActivas: boolean = false;
   floorArea: number = 0;
+
+  // ─── Estado de pisos ─────────────────────────────────────────────────────
+  floors: FloorData[] = [];
+  activeFloorLevel: number = 1;
+  floorOpacity: number = 1.0;
+
   private subscription: Subscription = new Subscription();
 
 
-  constructor(private cubeSelectionService: CubeSelectionService,private sceneService: SceneService,
-              private blockBuilderService: BlockBuilderService,) {}
+  constructor(private cubeSelectionService: CubeSelectionService, private sceneService: SceneService,
+              private blockBuilderService: BlockBuilderService,
+              private floorManagerService: FloorManagerService) {}
 
 
   ngOnInit(): void {
@@ -49,6 +57,17 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.subscription.add(
       this.cubeSelectionService.blockSize$.subscribe(size => {
         this.currentBlockSize = size;
+      })
+    );
+    this.subscription.add(
+      this.floorManagerService.floors$.subscribe(floors => {
+        this.floors = floors;
+      })
+    );
+    this.subscription.add(
+      this.floorManagerService.activeFloor$.subscribe(level => {
+        this.activeFloorLevel = level;
+        this.floorOpacity = this.floorManagerService.getFloorOpacity(level);
       })
     );
   }
@@ -108,6 +127,29 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   buildFloor() {
     this.floorArea = this.blockBuilderService.buildGroundFloor();
+  }
+
+  // ─── Gestión de pisos ────────────────────────────────────────────────────
+
+  canAddFloor(): boolean {
+    return this.floors.length < 5 && this.activeFloorLevel === this.floors.length;
+  }
+
+  addFloor(): void {
+    this.cubeSelectionService.requestAddFloor();
+  }
+
+  selectFloor(level: number): void {
+    this.floorManagerService.setActiveFloor(level);
+    this.cubeSelectionService.setFloorLevel(level);
+    this.floorOpacity = this.floorManagerService.getFloorOpacity(level);
+  }
+
+  onFloorOpacityChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    this.floorOpacity = value;
+    this.floorManagerService.setFloorOpacity(this.activeFloorLevel, value);
   }
 
   toggleDecorationSubMenu() {

@@ -29,6 +29,12 @@ export class CubeSelectionService {
   private saveModel = new Subject<void>();
   saveModel$ = this.saveModel.asObservable();
 
+  private addFloorSubject = new Subject<void>();
+  addFloor$ = this.addFloorSubject.asObservable();
+
+  private floorLevelSubject = new BehaviorSubject<number>(1);
+  floorLevel$ = this.floorLevelSubject.asObservable();
+
   requestSelectCube(): void {
     this.selectCubeSubject.next();
   }
@@ -72,4 +78,16 @@ export class CubeSelectionService {
   requestSaveModel(): void {
     this.saveModel.next();
   }
-}
+
+  requestAddFloor(): void {
+    this.addFloorSubject.next();
+  }
+
+  setFloorLevel(level: number): void {
+    this.floorLevelSubject.next(level);
+  }
+
+  getFloorLevel(): number {
+    return this.floorLevelSubject.value;
+  }
+}

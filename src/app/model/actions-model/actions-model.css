@@ -1,9 +1,14 @@
 :root {
-  --nat-1: #38752E; /* Verde muy oscuro */
-  --nat-2: #B6F7AA; /* Verde claro */
-  --nat-3: #76F55F; /* Verde brillante */
-  --nat-4: #567551; /* Verde mate */
-  --nat-5: #5DC24C; /* Verde medio */
+  --nat-1: #38752E;
+  /* Verde muy oscuro */
+  --nat-2: #B6F7AA;
+  /* Verde claro */
+  --nat-3: #76F55F;
+  /* Verde brillante */
+  --nat-4: #567551;
+  /* Verde mate */
+  --nat-5: #5DC24C;
+  /* Verde medio */
   --white: #ffffff;
   --black: #000000;
 }
@@ -29,7 +34,7 @@
   padding: 10px 25px;
   border-radius: 12px;
   border: 1px solid var(--nat-4);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .button-group {
@@ -128,15 +133,93 @@
   padding-top: 10px;
 }
 
+/* ─── Selector de Pisos ──────────────────────────────────────── */
+
+#floorSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-label {
+  color: var(--nat-2);
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.floor-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.floor-tab {
+  flex: 1 1 calc(33% - 5px);
+  min-width: 48px;
+  padding: 6px 4px;
+  background-color: var(--nat-4);
+  color: var(--white);
+  border: 1px solid var(--nat-1);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: bold;
+  text-align: center;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.floor-tab:hover {
+  background-color: var(--nat-5);
+  border-color: var(--nat-2);
+}
+
+.floor-tab.active {
+  background: linear-gradient(135deg, #34a853 0%, #b4d435 100%);
+  color: var(--black);
+  border-color: var(--nat-2);
+  box-shadow: 0 0 8px rgba(182, 247, 170, 0.5);
+}
+
+.add-floor-btn {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  color: var(--white);
+  border: 1px solid #3b82f6;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.add-floor-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+}
+
+.add-floor-btn:disabled {
+  background: #444;
+  border-color: #555;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* Submenús alineados con Tipografía Negra */
-.has-submenu { position: relative; }
+.has-submenu {
+  position: relative;
+}
 
 .decoration-submenu {
   position: absolute;
   top: 100%;
   left: 0;
   margin-top: 10px;
-  background-color: var(--white); /* Fondo claro para que resalte el texto negro */
+  background-color: var(--white);
+  /* Fondo claro para que resalte el texto negro */
   border: 2px solid var(--nat-1);
   padding: 6px;
   border-radius: 6px;
@@ -147,11 +230,13 @@
   z-index: 1001;
 }
 
-.decoration-submenu.open { display: flex; }
+.decoration-submenu.open {
+  display: flex;
+}
 
 .decoration-button {
   background-color: var(--nat-2);
-  color: var(--black); /* Tipografía negra solicitada */
+  color: var(--black);
   border: none;
   padding: 10px;
   border-radius: 4px;
@@ -162,9 +247,10 @@
   transition: background 0.2s;
 }
 
-.decoration-button:hover { 
-  background-color: var(--nat-5); 
-  color: var(--white); /* Cambio a blanco en hover para feedback visual */
+.decoration-button:hover {
+  background-color: var(--nat-5);
+  color: var(--white);
+  /* Cambio a blanco en hover para feedback visual */
 }
 
 /* Tutoriales y Cámara */
@@ -173,27 +259,29 @@
   top: 20px;
   right: 20px;
   z-index: 1000;
-  pointer-events: none; /* Evita bloquear interacciones si no hay mensaje */
+  pointer-events: none;
+  /* Evita bloquear interacciones si no hay mensaje */
 }
 
 #messageBox {
   /* Fondo negro sólido con ligera transparencia para profundidad */
-  background-color: rgba(0, 0, 0, 0.9); 
-  
+  background-color: rgba(0, 0, 0, 0.9);
+
   /* Texto en verde claro de la paleta para coherencia visual */
-  color: var(--nat-2); 
-  
+  color: var(--nat-2);
+
   padding: 15px 20px;
   border-radius: 10px;
-  border: 1px solid var(--nat-1); /* Borde verde oscuro para definir el área */
-  
+  border: 1px solid var(--nat-1);
+  /* Borde verde oscuro para definir el área */
+
   max-width: 300px;
   font-size: 0.9rem;
   font-weight: 600;
   text-align: center;
   line-height: 1.4;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  
+
   /* Animación de visibilidad */
   display: none;
   pointer-events: auto;
@@ -205,9 +293,17 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 #camare {
   position: fixed;
   bottom: 20px;
