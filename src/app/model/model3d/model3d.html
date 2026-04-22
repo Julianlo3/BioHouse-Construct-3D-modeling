@@ -16,4 +16,17 @@
   </div>
 </ng-container>
 
+<!-- Menú contextual de clic derecho -->
+<div
+  id="contextMenu"
+  *ngIf="showContextMenu"
+  [style.left.px]="contextMenuX"
+  [style.top.px]="contextMenuY"
+>
+  <div class="ctx-header">Bloque seleccionado</div>
+  <button class="ctx-item ctx-delete" (click)="deleteContextBlock()">
+    🗑 Eliminar bloque
+  </button>
+</div>
+
 
