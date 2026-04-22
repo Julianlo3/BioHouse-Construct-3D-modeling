@@ -65,3 +65,57 @@ app-actions-model {
   transform: scale(1.15);
 }
 
+/* ─── Menú Contextual (clic derecho) ──────────────────────────── */
+
+#contextMenu {
+  position: fixed;
+  z-index: 2000;
+  background: rgba(15, 20, 15, 0.95);
+  border: 1px solid #38752e;
+  border-radius: 8px;
+  padding: 4px 0;
+  min-width: 175px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  animation: ctxFadeIn 0.12s ease-out;
+  user-select: none;
+}
+
+@keyframes ctxFadeIn {
+  from { opacity: 0; transform: scale(0.92) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+.ctx-header {
+  padding: 7px 14px 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #76f55f;
+  border-bottom: 1px solid #38752e;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ctx-delete {
+  color: #ff6b6b;
+}
+
+.ctx-delete:hover {
+  background: rgba(255, 80, 80, 0.18);
+  color: #ff4444;
+}

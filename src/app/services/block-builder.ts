@@ -91,7 +91,7 @@ export class BlockBuilderService {
   // ─── API pública ───────────────────────────────────────────────────────────
 
   /** Primer bloque — colocado en coordenadas absolutas */
-  buildCube(x: number, z: number, blockSize: 'full' | 'half' = 'full', floorLevel?: number): void {
+  buildCube(x: number, z: number, blockSize: 'full' | 'half' = 'full', floorLevel?: number, isStarter: boolean = false): void {
     if (!this.moldeBloque) return;
     const level = floorLevel ?? this.floorManager.getActiveFloorLevel();
     const baseY = this.floorManager.getActiveFloorBaseY();
@@ -102,6 +102,7 @@ export class BlockBuilderService {
     cube.userData['typeMaterial'] = blockSize === 'half' ? 'block-half' : 'block-full';
     cube.userData['assetPath'] = 'buildBlock';
     cube.userData['floorLevel'] = level;
+    cube.userData['isStarterBlock'] = isStarter;
     this.sceneService.add(cube);
     this.numBlocks++;
   }
@@ -594,4 +595,63 @@ export class BlockBuilderService {
   getBlockHeight(): number { return this.alturaBloque; }
   getBlockMold(): THREE.Object3D | null { return this.moldeBloque; }
   decrementBlockCount(): void { this.numBlocks--; }
+
+  // ─── Eliminación de bloques ────────────────────────────────────────────────
+
+  /**
+   * Elimina un bloque de la escena y ajusta los contadores y el segmento activo.
+   *
+   * - Decrementa `numBlocks`.
+   * - Si el bloque eliminado era el origen del segmento activo → resetea el segmento.
+   * - Si era parte del segmento → resta su longitud del contador.
+   * - Limpia los slots "ocupados" de los bloques vecinos (radio ≤ 5 u) para que
+   *   los botones de construcción reaparezcan en esas posiciones.
+   * - Elimina y libera los recursos Three.js del bloque.
+   */
+  deleteBlock(block: THREE.Object3D): void {
+    // 1. Ajustar segmento activo
+    if (this.segmento) {
+      if (this.segmento.origen === block) {
+        // El origen desaparece → invalidar todo el segmento
+        this.segmento = null;
+      } else {
+        // Restar la longitud del bloque eliminado al contador del segmento
+        const blockSize = block.userData['blockSize'] === 'half' ? 'half' : 'full';
+        const addedLength = blockSize === 'half' ? 0.5 : 1.0;
+        this.segmento.contador = Math.max(0, this.segmento.contador - addedLength);
+        if (this.segmento.contador <= 0) {
+          this.segmento = null;
+        }
+      }
+    }
+
+    // 2. Decrementar contador total
+    this.numBlocks--;
+
+    // 3. Limpiar slots "ocupados" en bloques vecinos cercanos
+    //    (radio de 5 unidades cubre el bloque más largo posible = 3 u + margen)
+    const allWalls = this.sceneService.getWalls();
+    allWalls.forEach(wall => {
+      if (wall === block) return;
+      const dist = wall.position.distanceTo(block.position);
+      if (dist < 5) {
+        // Limpiar todos los slots de ese vecino; los botones volverán a aparecer
+        wall.userData['ocupados'] = [];
+      }
+    });
+
+    // 4. Eliminar de la escena y liberar recursos
+    this.sceneService.remove(block);
+    block.traverse(child => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry?.dispose();
+        const mat = child.material;
+        if (Array.isArray(mat)) {
+          mat.forEach(m => m.dispose());
+        } else {
+          (mat as THREE.Material)?.dispose();
+        }
+      }
+    });
+  }
 }

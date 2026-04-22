@@ -62,8 +62,11 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     visible: boolean;
   }> = [];
 
-
-
+  // ─── Menú contextual (clic derecho) ───────────────────────────
+  showContextMenu = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  private contextMenuBlock: THREE.Object3D | null = null;
 
   // =========================================================================
   // CICLO DE VIDA
@@ -101,9 +104,27 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.handleClick(intersects)
     );
 
+    // Registrar clic derecho en el canvas del renderer
+    const canvas = this.sceneService.getRenderer().domElement;
+    canvas.addEventListener('contextmenu', (event: MouseEvent) => {
+      event.preventDefault();
+      this.handleRightClick(event);
+    });
+
+    // Cerrar menú al hacer clic izquierdo en cualquier sitio (con delay para permitir el click del botón)
+    window.addEventListener('mousedown', (e: MouseEvent) => {
+      if (e.button === 0 && this.showContextMenu) {
+        setTimeout(() => {
+          this.showContextMenu = false;
+          this.contextMenuBlock = null;
+          this.cdr.detectChanges();
+        }, 150);
+      }
+    });
+
     // Cargar el modelo del bloque
     this.blockBuilder.loadBlockModel(() => {
-      this.blockBuilder.buildCube(0, 0, 'full', 1);
+      this.blockBuilder.buildCube(0, 0, 'full', 1, true);
       // Marcar retroactivamente muros del piso 1
       this.floorManager.markExistingWallsAsFloor1(this.sceneService.getWalls());
       this.animate();
@@ -198,6 +219,76 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Maneja el clic derecho en el canvas.
+   * Hace raycasting para encontrar el bloque bajo el cursor y muestra el menú contextual.
+   */
+  private handleRightClick(event: MouseEvent): void {
+    const renderer = this.sceneService.getRenderer();
+    const camera = this.sceneService.getCamera();
+    const rect = renderer.domElement.getBoundingClientRect();
+
+    const mouse = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(
+      this.sceneService.getScene().children,
+      true
+    );
+
+    const hit = this.selectionService.findIntersectionByUserData(
+      intersects,
+      'isMuro',
+      true
+    );
+
+    if (hit) {
+      this.contextMenuBlock = this.selectionService.getRootGroup(hit.object);
+      this.contextMenuX = event.clientX;
+      this.contextMenuY = event.clientY;
+      this.showContextMenu = true;
+    } else {
+      this.showContextMenu = false;
+      this.contextMenuBlock = null;
+    }
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Elimina el bloque sobre el que se hizo clic derecho.
+   */
+  deleteContextBlock(): void {
+    if (!this.contextMenuBlock) return;
+
+    const blockToDelete = this.contextMenuBlock;
+
+    // Protección: no borrar bloques iniciales/guía
+    if (blockToDelete.userData['isStarterBlock']) {
+      window.alert('No se puede eliminar el bloque inicial de un piso.');
+      this.showContextMenu = false;
+      this.contextMenuBlock = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Si estaba seleccionado, limpiar selección y botones flotantes
+    if (this.selectionService.getSelectedCube() === blockToDelete) {
+      this.selectionService.deselectCube();
+      this.overlayService.clearButtons();
+      this.activeButtons = [];
+    }
+
+    this.blockBuilder.deleteBlock(blockToDelete);
+
+    this.showContextMenu = false;
+    this.contextMenuBlock = null;
+    this.cdr.detectChanges();
+  }
+
   // =========================================================================
   // CONSTRUCCIÓN DE BLOQUES
   // =========================================================================
@@ -244,7 +335,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       result.x,
       result.z,
       'full',
-      this.floorManager.getActiveFloorLevel()
+      this.floorManager.getActiveFloorLevel(),
+      true // Es un bloque inicial/guía
     );
 
     // Seleccionar el bloque recién creado
