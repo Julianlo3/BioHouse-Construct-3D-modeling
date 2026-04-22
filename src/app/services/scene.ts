@@ -249,6 +249,36 @@ export class SceneService {
   }
 
   /**
+   * Actualiza la opacidad solo de los muros y columnas de un piso específico
+   */
+  updateFloorOpacity(level: number, opacity: number): void {
+    this.scene.children.forEach(obj => {
+      // Grupos de muros
+      if (obj.name === 'muro' && obj.userData['floorLevel'] === level) {
+        obj.traverse(child => {
+          if (child instanceof THREE.Mesh) {
+            const mat = child.material as THREE.MeshStandardMaterial;
+            mat.transparent = true;
+            mat.opacity = opacity;
+            mat.needsUpdate = true;
+          }
+        });
+      }
+      // Columnas (meshes directos con name 'columna')
+      if (
+        obj instanceof THREE.Mesh &&
+        obj.name === 'columna' &&
+        obj.userData['floorLevel'] === level
+      ) {
+        const mat = obj.material as THREE.MeshStandardMaterial;
+        mat.transparent = true;
+        mat.opacity = opacity;
+        mat.needsUpdate = true;
+      }
+    });
+  }
+
+  /**
    * Agrega un objeto a la escena
    */
   add(object: THREE.Object3D): void {
@@ -263,10 +293,15 @@ export class SceneService {
   }
 
   /**
-   * Obtiene todos los muros de la escena
+   * Obtiene todos los muros de la escena.
+   * Si se pasa `level`, filtra solo los muros de ese piso.
    */
-  getWalls(): THREE.Object3D[] {
-    return this.scene.children.filter((obj) => obj.name === 'muro');
+  getWalls(level?: number): THREE.Object3D[] {
+    return this.scene.children.filter((obj) => {
+      if (obj.name !== 'muro') return false;
+      if (level !== undefined) return obj.userData['floorLevel'] === level;
+      return true;
+    });
   }
 
   /**

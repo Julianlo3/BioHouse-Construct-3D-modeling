@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import { SceneService } from './scene';
 import { AssetLoaderService } from './asset-loader';
+import { FloorManagerService } from './floor-manager';
 
 const LARGO = 3.0;
 const ANCHO = 0.4;
@@ -30,7 +31,8 @@ export class BlockBuilderService {
 
   constructor(
     private sceneService: SceneService,
-    private assetLoader: AssetLoaderService
+    private assetLoader: AssetLoaderService,
+    private floorManager: FloorManagerService
   ) { }
 
   // ─── Carga del modelo ──────────────────────────────────────────────────────
@@ -66,23 +68,40 @@ export class BlockBuilderService {
           }
         });
 
+        this.syncFloorHeight();
+
         onSuccess();
       },
       (err: any) => console.error('Error al cargar modelo:', err)
     );
+
+    // Calcular alturaEntrepiso: altura del muro * 17 filas (muro 2.5m real) + 0.3 losa
+    // Se delega al FloorManager para que lo tenga disponible.
+  }
+
+  /** Llamado internamente tras cargar el modelo para sincronizar la altura con FloorManager */
+  private syncFloorHeight(): void {
+    // alturaEntrepiso = 17 filas de bloque + gap de 0.2 entre cada fila + losa 0.3
+    // = (alturaBloque + 0.2) * 17 + 0.3  → pero usamos el valor aproximado fijo de 10.4
+    // para no crear dependencia circular; puede ajustarse aquí si cambia la geometría.
+    const h = (this.alturaBloque + 0.2) * 17 + 0.3;
+    this.floorManager.setFloorHeight(h);
   }
 
   // ─── API pública ───────────────────────────────────────────────────────────
 
   /** Primer bloque — colocado en coordenadas absolutas */
-  buildCube(x: number, z: number, blockSize: 'full' | 'half' = 'full'): void {
+  buildCube(x: number, z: number, blockSize: 'full' | 'half' = 'full', floorLevel?: number): void {
     if (!this.moldeBloque) return;
+    const level = floorLevel ?? this.floorManager.getActiveFloorLevel();
+    const baseY = this.floorManager.getActiveFloorBaseY();
     const cube = this.cloneWall(blockSize);
-    cube.position.set(x, 0, z);
-    // Información para guardado y crargado de modelo
+    cube.position.set(x, baseY, z);
+    // Información para guardado y cargado de modelo
     cube.userData['isModelElement'] = true;
     cube.userData['typeMaterial'] = blockSize === 'half' ? 'block-half' : 'block-full';
     cube.userData['assetPath'] = 'buildBlock';
+    cube.userData['floorLevel'] = level;
     this.sceneService.add(cube);
     this.numBlocks++;
   }
@@ -178,6 +197,7 @@ export class BlockBuilderService {
     newCube.userData['isModelElement'] = true;
     newCube.userData['typeMaterial'] = newBlockSize === 'half' ? 'block-half' : 'block-full';
     newCube.userData['assetPath'] = 'buildBlock';
+    newCube.userData['floorLevel'] = ref.userData['floorLevel'] ?? this.floorManager.getActiveFloorLevel();
     this.sceneService.add(newCube);
     this.numBlocks++;
     this.segmento!.contador += addedLength;
@@ -236,8 +256,13 @@ export class BlockBuilderService {
     const mat = this.sceneService.getColumnMaterial();
     const col = new THREE.Mesh(geo, mat);
     col.name = 'columna';
-    // Se ajusta la posición Y a 4.7 para que la base quede alineada con el primer bloque (-0.3)
-    col.position.set(colX, 4.7, colZ);
+    // El offset 4.7 centra la columna respecto a su base (-0.3 del bloque).
+    // Se suma ref.position.y para posicionarla correctamente en cualquier piso.
+    col.position.set(colX, ref.position.y + 4.7, colZ);
+    col.userData['isModelElement'] = true;
+    col.userData['typeMaterial'] = 'column';
+    col.userData['assetPath'] = 'column';
+    col.userData['floorLevel'] = ref.userData['floorLevel'] ?? this.floorManager.getActiveFloorLevel();
     this.sceneService.add(col);
     this.numColumns++;
     console.log(`Columna giro en X:${colX} Z:${colZ}`);
@@ -265,6 +290,7 @@ export class BlockBuilderService {
     newCube.userData['isModelElement'] = true;
     newCube.userData['typeMaterial'] = newBlockSize === 'half' ? 'block-half' : 'block-full';
     newCube.userData['assetPath'] = 'buildBlock';
+    newCube.userData['floorLevel'] = ref.userData['floorLevel'] ?? this.floorManager.getActiveFloorLevel();
     this.sceneService.add(newCube);
     this.numBlocks++;
 
@@ -300,16 +326,18 @@ export class BlockBuilderService {
     const distCol = L / 2 + 0.2;
 
     // La columna se pone al extremo del largo del bloque (distCol desde su centro)
-    // en la misma dirección de avance del segmento
+    // en la misma dirección de avance del segmento.
+    // refBloque.position.y sitúa la columna en el piso correcto.
     col.position.set(
       refBloque.position.x + dirX * distCol * lado,
-      4.7,
+      refBloque.position.y + 4.7,
       refBloque.position.z + dirZ * distCol * lado
     );
 
     col.userData['isModelElement'] = true;
     col.userData['typeMaterial'] = 'column';
     col.userData['assetPath'] = 'column';
+    col.userData['floorLevel'] = refBloque.userData['floorLevel'] ?? this.floorManager.getActiveFloorLevel();
     this.sceneService.add(col);
     this.numColumns++;
 
@@ -324,7 +352,9 @@ export class BlockBuilderService {
 
   private buildFloor(): void {
     if (!this.moldeBloque) return;
-    const actuales = this.sceneService.getWalls();
+    // Construye filas verticales solo sobre los muros del piso activo
+    const activeLevel = this.floorManager.getActiveFloorLevel();
+    const actuales = this.sceneService.getWalls(activeLevel);
     const nuevos: THREE.Object3D[] = [];
 
     actuales.forEach(bloque => {
@@ -339,6 +369,7 @@ export class BlockBuilderService {
         muro.position.copy(bloque.position);
         muro.rotation.copy(bloque.rotation);
         muro.position.y += this.alturaBloque + 0.2;
+        muro.userData['floorLevel'] = activeLevel;
         nuevos.push(muro);
       }
     });
@@ -347,8 +378,10 @@ export class BlockBuilderService {
     this.numBlocks += nuevos.length;
   }
 
+  /** Genera la losa del suelo interior para el piso activo */
   buildGroundFloor(): number {
-    const walls = this.sceneService.getWalls();
+    const activeLevel = this.floorManager.getActiveFloorLevel();
+    const walls = this.sceneService.getWalls(activeLevel);
     if (walls.length < 3) {
       console.warn('Se necesitan al menos 3 muros para crear un piso cerrado.');
       return 0;
@@ -499,12 +532,14 @@ export class BlockBuilderService {
       side: THREE.DoubleSide
     });
 
+    const slabName = `suelo_piso_${activeLevel}`;
     const floorMesh = new THREE.Mesh(geometry, material);
-    floorMesh.position.y = 0.2; // Usando el valor modificado por el usuario
-    floorMesh.name = 'suelo_interior';
+    const baseY = this.floorManager.getActiveFloorBaseY();
+    floorMesh.position.y = baseY + 0.2;
+    floorMesh.name = slabName;
     floorMesh.receiveShadow = true;
 
-    const existingFloor = this.sceneService.getScene().getObjectByName('suelo_interior');
+    const existingFloor = this.sceneService.getScene().getObjectByName(slabName);
     if (existingFloor) {
       this.sceneService.remove(existingFloor);
       if (existingFloor instanceof THREE.Mesh) {
@@ -518,6 +553,7 @@ export class BlockBuilderService {
     floorMesh.userData['isModelElement'] = true;
     floorMesh.userData['typeMaterial'] = 'floor';
     floorMesh.userData['assetPath'] = 'floor';
+    floorMesh.userData['floorLevel'] = activeLevel;
     this.sceneService.add(floorMesh);
 
     return area;
