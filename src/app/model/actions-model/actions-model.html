@@ -31,7 +31,7 @@
 
       <img class="separator" src="/assets/next-Icon.svg" alt="next">
 
-      <button class="action-button main-dark" (click)="buildFloor()">
+      <button class="action-button main-dark" (click)="openAddFloorModal()">
         <img src="/assets/floor-Icon.svg" alt="piso">
       </button>
 
@@ -44,32 +44,18 @@
   </nav>
 
   <div class="side-panel">
-
-    <!-- ─── Selector de Pisos ─── -->
     <div id="floorSelector">
       <label class="panel-label">🏢 Pisos</label>
-
       <div class="floor-tabs">
-        <button
-          *ngFor="let floor of floors"
-          class="floor-tab"
-          [class.active]="activeFloorLevel === floor.level"
-          (click)="selectFloor(floor.level)"
-          [id]="'floor-tab-' + floor.level">
+        <button *ngFor="let floor of floors" 
+                class="floor-tab"
+                [class.active]="activeFloorLevel === floor.level"
+                (click)="selectFloor(floor.level)">
           Piso {{ floor.level }}
         </button>
       </div>
-
-      <button
-        id="addFloorBtn"
-        class="add-floor-btn"
-        [disabled]="!canAddFloor()"
-        (click)="addFloor()">
-        &#43; Agregar Piso
-      </button>
     </div>
 
-    <!-- ─── Opacidad por piso ─── -->
     <div id="opacityControl">
       <label>Opacidad — Piso {{ activeFloorLevel }}</label>
       <input type="range" min="0.1" max="1.0" step="0.05"
@@ -77,7 +63,6 @@
              (input)="onFloorOpacityChange($event)" />
     </div>
 
-    <!-- ─── Guías + métricas ─── -->
     <div id="lineGuides">
       <button (click)="toggleGuias()" class="guias-btn" [class.active]="guiasActivas">
         {{ guiasActivas ? 'Guías ON' : 'Guías OFF' }}
@@ -93,6 +78,26 @@
   </div>
 </div>
 
+<div class="confirm-modal-overlay" *ngIf="isFloorModalOpen">
+  <div class="confirm-modal">
+    <h3>¿Está seguro de agregar un piso a la construcción?</h3>
+    <div class="modal-actions">
+      <button class="btn-confirm" (click)="confirmAddFloor()">Aceptar</button>
+      <button class="btn-cancel" (click)="isFloorModalOpen = false">Rechazar</button>
+    </div>
+  </div>
+</div>
+
+<div class="confirm-modal-overlay" *ngIf="isWallModalOpen">
+  <div class="confirm-modal">
+    <h3>¿Deseas construir los muros de 2.5 metros (17 bloques) hacia arriba?</h3>
+    <div class="modal-actions">
+      <button class="btn-confirm" (click)="confirmBuildWall()">Aceptar</button>
+      <button class="btn-cancel" (click)="isWallModalOpen = false">Rechazar</button>
+    </div>
+  </div>
+</div>
+
 <div id="tutorials">
   <div id="messageBox" [class.show]="isAddBrickActive || isDecorationsActive">
     {{ getMessage() }}
@@ -100,7 +105,11 @@
 </div>
 
 <div id="camare">
-  <button id="InfoControls" class="action-button main-dark" (click)="toggleCamera()">
-    <img src="/assets/camera-Icon.svg" alt="Camera">
-  </button>
+  <div class="camera-info-panel">
+    <img src="/assets/camera-Icon.svg" alt="Cámara" class="info-icon">
+    <p>
+      Mantén <strong>clic izquierdo</strong> para rotar la cámara y <strong>clic derecho</strong> para moverla. <br>
+      Usa dos dedos en el <strong>panel táctil</strong> o la rueda del <strong>mouse</strong> para el zoom.
+    </p>
+  </div>
 </div>

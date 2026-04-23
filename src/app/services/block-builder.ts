@@ -371,11 +371,17 @@ export class BlockBuilderService {
         muro.rotation.copy(bloque.rotation);
         muro.position.y += this.alturaBloque + 0.2;
         muro.userData['floorLevel'] = activeLevel;
+        muro.userData['isModelElement'] = true;
+        muro.userData['typeMaterial'] = blockSize === 'half' ? 'block-half' : 'block-full';
+        muro.userData['assetPath'] = 'buildBlock';
         nuevos.push(muro);
       }
     });
 
-    nuevos.forEach(m => this.sceneService.add(m));
+    nuevos.forEach(m => {
+      
+      this.sceneService.add(m)
+  });
     this.numBlocks += nuevos.length;
   }
 

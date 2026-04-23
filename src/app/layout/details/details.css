@@ -3,56 +3,74 @@
   background: linear-gradient(135deg, #34a853 0%, #2d9547 40%, #b4d435 100%);
   display: flex;
   align-items: center;
-  padding: 40px 0;
-  height: 50vh;
+  padding: 40px 5%; 
+  /* Aumentamos el alto mínimo para que el video cuadrado tenga espacio */
+  min-height: 85vh; 
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .text-content {
-  width: 50%;
-  padding-left: 3%;
+  width: 35%; /* Reducimos un poco el texto para favorecer al video */
   color: #ffffff;
+  padding-right: 5%;
 }
 
 .text-content h2 {
-  margin-bottom: 3%;
-  color: #b4d435;
-  font-size: larger;
+  margin-bottom: 20px;
+  color: #ffffff; 
+  font-size: 3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .video-container {
-  width: 60%;
-  height: 100%;
+  width: 65%; /* Espacio generoso para el video */
   display: flex;
   justify-content: center;
-  padding-right: 3%;
+  align-items: center;
 }
 
 #welcom video {
-  width: 80%;
-  border-radius: 8px;
+  /* FORZAR CUADRADO Y TAMAÑO GRANDE */
+  height: 60vh; /* Ocupa el 70% del alto de la pantalla */
+  width: 90vh;  /* Ocupa lo mismo en ancho para ser cuadrado */
+  
+  /* Esto es clave: mantiene la proporción interna del video 
+     rellenando el cuadrado sin dejar franjas negras */
+  object-fit: cover; 
+  aspect-ratio: 1 / 1; 
+  
+  border-radius: 24px; /* Bordes más pronunciados para el formato cuadrado */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  background-color: #000;
 }
 
-/* --- ejemplos --- */
+/* --- Sección de Ejemplos (Sin cambios significativos, solo mantenimiento) --- */
 .examples-section {
-  background-color: #ffffff;
-  padding: 5vh 3%;
+  background-color: #fcfcfc;
+  padding: 8vh 5%;
   text-align: center;
 }
-.examples-section h2 {
-  font-size: 5vh; 
-  color: #2d9547; 
-  margin-bottom: 4vh;
-  font-weight: bold;
-}
 
-.titulo-ejemplos{
-  font-size: 9vh;
+.examples-section h2 {
+  font-size: 2.5rem; 
+  color: #1e3d18; /* Un verde más oscuro para máxima legibilidad */
+  margin-bottom: 6vh;
+  font-weight: 800;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.2;
 }
 
 .examples-grid {
   display: flex;
   justify-content: center;
-  gap: 5vh; 
+  gap: 40px; 
   flex-wrap: wrap;
 }
 
@@ -60,36 +78,76 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5%;
-}
-
-.cuadro-imagen {
-  width: 28vh; 
-  height: 28vh; 
-  border: 2px solid #2d9547; 
-  background-color: #f9f9f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 8px; 
   transition: transform 0.3s ease;
 }
 
-.cuadro-imagen:hover {
-  transform: scale(1.03);
-  border-color: #b4d435;
+.cuadro-imagen {
+  width: 320px; /* Tamaño fijo más consistente */
+  height: 220px; 
+  background-color: #ffffff;
+  overflow: hidden;
+  border-radius: 15px; 
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Sombra suave */
+  transition: all 0.3s ease;
+}
+
+.ejemplo-item:hover .cuadro-imagen {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(45, 149, 71, 0.2);
+  border-color: #2d9547;
 }
 
 .cuadro-imagen img {
   width: 100%;
   height: 100%;
-  object-fit: cover; 
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.ejemplo-item:hover img {
+  transform: scale(1.1); /* Zoom suave al pasar el mouse */
 }
 
 .ejemplo-texto {
-  margin-top: 1.5vh;
-  font-weight: bold;
+  margin-top: 20px;
+  font-weight: 700;
   color: #2d9547;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.5px;
 }
+
+/* --- Responsividad --- */
+@media (max-width: 1100px) {
+  #welcom video {
+    height: 50vh; /* Reducimos un poco en pantallas medianas */
+    width: 50vh;
+  }
+}
+
+@media (max-width: 900px) {
+  #welcom {
+    flex-direction: column;
+    min-height: auto;
+    text-align: center;
+    padding: 60px 5%;
+  }
+
+  .text-content {
+    width: 100%;
+    margin-bottom: 40px;
+  }
+
+  .video-container {
+    width: 100%;
+  }
+
+  #welcom video {
+    /* En móvil, usamos el ancho de la pantalla para el cuadrado */
+    width: 85vw;
+    height: 85vw;
+    max-width: 400px; /* Evitamos que sea gigante en tablets */
+    max-height: 400px;
+  }
+}
+

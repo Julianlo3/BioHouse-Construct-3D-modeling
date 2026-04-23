@@ -24,6 +24,8 @@ export class ActionsModel implements OnInit, OnDestroy {
   opacity = 1.0;
   guiasActivas: boolean = false;
   floorArea: number = 0;
+  isFloorModalOpen = false;
+  isWallModalOpen = false;
 
   // ─── Estado de pisos ─────────────────────────────────────────────────────
   floors: FloorData[] = [];
@@ -121,12 +123,35 @@ export class ActionsModel implements OnInit, OnDestroy {
     return this.blockBuilderService.getColumnCount();
   }
 
-  buildWall(){
+  // Construir muro
+  buildWall() {
+    this.isWallModalOpen = true;
+  }
+
+  // Confirmación para construir muro
+  confirmBuildWall() {
     this.cubeSelectionService.requestConstruirMuro();
+    this.isWallModalOpen = false;
   }
 
   buildFloor() {
     this.floorArea = this.blockBuilderService.buildGroundFloor();
+  }
+
+  openAddFloorModal() {
+    if (this.canAddFloor()) {
+      this.isFloorModalOpen = true;
+    } else {
+      window.alert("No se pueden agregar más pisos o debe estar en el último piso.");
+    }
+  }
+
+  // Nueva función para confirmar la acción
+  confirmAddFloor() {
+    this.addFloor(); // Ejecuta la lógica existente de agregar piso
+    this.isFloorModalOpen = false;
+    // Opcional: También podrías llamar a buildFloor() aquí si deseas 
+    // que se calcule el área inmediatamente.
   }
 
   // ─── Gestión de pisos ────────────────────────────────────────────────────
@@ -185,10 +210,10 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   getMessage(): string {
     if (this.isDecorationsActive) {
-      return 'Doble click para selecionar la pocicion del elemento, utiliza la tecla q para rptar y w (adelante) a (izquierda) s (atras) d (derecha) para pocicionar el elemento';
+      return 'Haz doble clic para seleccionar la posición del elemento. Utiliza la tecla Q para rotar y W (adelante), A (izquierda), S (atrás), D (derecha) para posicionar el elemento. ESC para cancelar.';
     }
     if (this.isAddBrickActive) {
-      return 'Doble click para selecionar ladrillo y utiliza los botones para crear mas ladrillos';
+      return 'Haz doble clic para seleccionar un ladrillo y utilizar los botones de acción. Haz clic derecho para eliminar un ladrillo.';
     }
     return '';
   }

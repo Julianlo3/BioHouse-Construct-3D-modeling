@@ -294,12 +294,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
   // =========================================================================
 
   buildWalls(): void {
-    const confirm = window.confirm(
-      '¿Deseas construir los muros de 2.5 metros (17 bloques) hacia arriba?'
-    );
-    
-    if (!confirm) return;
-
     // Como ya existe 1 bloque base, construimos 16 niveles adicionales para llegar a 17 en total.
     this.blockBuilder.buildFloors(16);
     this.updateButtonPosition();
