@@ -43,7 +43,10 @@ export class Model3dService {
    * Mapea al @PostMapping("/user/list") del controlador.
    */
   listModelsByUser(user: UserRequest): Observable<Model3DResponseUnique[]> {
-    return this.http.post<Model3DResponseUnique[]>(`${this.API_URL}/user/list`, user);
+    console.log('API: Calling listModelsByUser with:', user);
+    const url = `${this.API_URL}/user/list`;
+    console.log('API URL:', url);
+    return this.http.post<Model3DResponseUnique[]>(url, user);
   }
 
   /**

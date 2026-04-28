@@ -117,3 +117,64 @@
     padding: 1.5vh 3.5vh;
   }
 }
+
+/* ─── Estilos para el Modal de Elección ─────────────────────────── */
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  pointer-events: auto;
+}
+
+.confirm-modal {
+  background: #38752E;
+  padding: 30px;
+  border-radius: 15px;
+  border: 2px solid #B6F7AA;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.confirm-modal h3 {
+  color: #ffffff;
+  margin-bottom: 25px;
+  font-size: 1.1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 10px 25px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-size: 0.9rem;
+}
+
+.btn-confirm.modal-btn {
+  background-color: #76F55F;
+  color: #000000;
+}
+
+.btn-cancel.modal-btn {
+  background-color: #ff5252;
+  color: #ffffff;
+}
+
+.modal-btn:hover {
+  transform: scale(1.05);
+}

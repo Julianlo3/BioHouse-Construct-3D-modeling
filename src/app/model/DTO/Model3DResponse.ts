@@ -3,7 +3,7 @@ import { UserRequest } from "./UserRequest";
 
 export interface Model3DResponse {
     id: number;
-    Title: string;
+    title: string;
     description: string;
     materials: MaterialsResponse[];
     owner: UserRequest;

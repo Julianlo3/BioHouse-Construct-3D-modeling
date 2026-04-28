@@ -9,6 +9,16 @@ const ANCHO = 0.4;
 const HENDIDURA = 0.17;
 const DIST_COL = 1.7;   // centro bloque → centro columna
 
+const DOOR_DIMENSIONS = {
+  width: 3,
+  height: 6,
+} as const;
+
+const WINDOW_DIMENSIONS = {
+  width: 3,
+  height: 3,
+} as const;
+
 @Injectable({ providedIn: 'root' })
 export class BlockBuilderService {
 
@@ -659,5 +669,156 @@ export class BlockBuilderService {
         }
       }
     });
+  }
+
+  /**
+   * Reconstruye un bloque desde datos guardados (para cargar modelos)
+   */
+  rebuildBlockFromData(data: any): THREE.Object3D | null {
+    if (!this.moldeBloque) return null;
+
+    const blockSize = data.blockSize || 'full';
+    const cube = this.cloneWall(blockSize);
+
+    // Restaurar posición
+    cube.position.set(data.positionX, data.positionY, data.positionZ);
+
+    // Restaurar rotación
+    cube.rotation.set(data.rotationX, data.rotationY, data.rotationZ);
+
+    // Restaurar escala
+    cube.scale.set(data.scaleX || 1, data.scaleY || 1, data.scaleZ || 1);
+
+// Restaurar userData
+    cube.userData['isModelElement'] = true;
+    cube.userData['typeMaterial'] = data.typeMaterial;
+    cube.userData['assetPath'] = data.assetPath || 'buildBlock';
+    cube.userData['blockSize'] = blockSize;
+    
+    // Fallback: inferir floorLevel desde posición Y si no existe
+    const alturaEntrepiso = this.floorManager.getFloorHeight();
+    const inferredFloorLevel = (data.floorLevel && data.floorLevel > 0) 
+      ? data.floorLevel 
+      : Math.floor(data.positionY / alturaEntrepiso) + 1;
+    cube.userData['floorLevel'] = inferredFloorLevel;
+    cube.userData['isStarterBlock'] = data.isStarterBlock || false;
+
+    return cube;
+  }
+
+  /**
+   * Reconstruye una columna desde datos guardados
+   */
+  rebuildColumnFromData(data: any): THREE.Object3D | null {
+    const geo = new THREE.BoxGeometry(ANCHO, 10, ANCHO);
+    const mat = this.sceneService.getColumnMaterial();
+    const col = new THREE.Mesh(geo, mat);
+    col.name = 'columna';
+
+    col.position.set(data.positionX, data.positionY, data.positionZ);
+    col.rotation.set(data.rotationX, data.rotationY, data.rotationZ);
+    col.scale.set(data.scaleX || 1, data.scaleY || 1, data.scaleZ || 1);
+
+    col.userData['isModelElement'] = true;
+    col.userData['typeMaterial'] = data.typeMaterial;
+    col.userData['assetPath'] = data.assetPath || 'column';
+    col.userData['floorLevel'] = data.floorLevel || this.inferFloorLevel(data.positionY);
+
+    return col;
+  }
+
+  /**
+   * Infiere el floorLevel desde la posición Y (altura)
+   * Piso 1: Y = 0
+   * Piso 2: Y ≈ 10.4 (altura entrepiso)
+   * Piso 3: Y ≈ 20.8, etc.
+   */
+  private inferFloorLevel(positionY: number): number {
+    const alturaEntrepiso = 10.4;
+    if (positionY <= alturaEntrepiso / 2) return 1;
+    return Math.floor(positionY / alturaEntrepiso) + 1;
+  }
+
+  /**
+   * Reconstruye una decoración (puerta/ventana) desde datos guardados
+   */
+  rebuildDecorationFromData(data: any): void {
+    const modelType = data.typeMaterial as 'door' | 'window';
+    const modelPath = this.assetLoader.getDecorationPath(modelType);
+
+    this.assetLoader.loadDecorationModel(
+      modelType,
+      (decoration) => {
+        const dimensions = modelType === 'door' ? DOOR_DIMENSIONS : WINDOW_DIMENSIONS;
+
+        // Escalar modelo
+        const box = new THREE.Box3().setFromObject(decoration);
+        const size = box.getSize(new THREE.Vector3());
+        decoration.scale.set(dimensions.width / size.x, dimensions.height / size.y, 1);
+        decoration.updateMatrixWorld(true);
+
+        // Recentrar el modelo (igual que en DecorationService)
+        const scaledBox = new THREE.Box3().setFromObject(decoration);
+        const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+        decoration.position.sub(scaledCenter);
+
+        // Restaurar posición y rotación
+        decoration.position.set(data.positionX, data.positionY, data.positionZ);
+        decoration.rotation.set(data.rotationX, data.rotationY, data.rotationZ);
+
+        // userData
+        decoration.userData['isModelElement'] = true;
+        decoration.userData['typeMaterial'] = data.typeMaterial;
+        decoration.userData['assetPath'] = data.assetPath;
+        decoration.userData['floorLevel'] = data.floorLevel || this.inferFloorLevel(data.positionY);
+
+        this.sceneService.add(decoration);
+      },
+      (error) => console.error('Error cargando decoración:', error)
+    );
+  }
+
+  /**
+   * Reconstruye toda la escena desde datos de modelo guardado
+   */
+  loadModelFromData(materialsData: any[]): void {
+    // Resetear contadores antes de cargar
+    this.numBlocks = 0;
+    this.numColumns = 0;
+
+    if (!materialsData || materialsData.length === 0) return;
+
+    console.log('[DEBUG loadModelFromData] Total materiales:', materialsData.length);
+    console.log('[DEBUG loadModelFromData] floorLevels de los datos:', materialsData.map(m => m.floorLevel));
+
+    materialsData.forEach(data => {
+      let object: THREE.Object3D | null = null;
+
+      if (data.typeMaterial === 'column') {
+        object = this.rebuildColumnFromData(data);
+      } else if (data.typeMaterial?.includes('block')) {
+        object = this.rebuildBlockFromData(data);
+      } else if (data.typeMaterial === 'door' || data.typeMaterial === 'window') {
+        this.rebuildDecorationFromData(data);
+        return;
+      }
+
+      if (object) {
+        this.sceneService.add(object);
+        if (data.typeMaterial === 'column') {
+          this.numColumns++;
+        } else {
+          this.numBlocks++;
+        }
+      }
+    });
+  }
+
+  /**
+   * Resetea los contadores de bloques y columnas
+   */
+  resetBlockCount(): void {
+    this.numBlocks = 0;
+    this.numColumns = 0;
   }
 }

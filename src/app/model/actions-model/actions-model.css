@@ -414,3 +414,72 @@
   color: var(--nat-1);
   font-weight: 700;
 }
+
+/* Estilos para el Modal de Carga de Modelos */
+.load-modal {
+  max-width: 500px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  margin: 20px 0;
+  min-height: 200px;
+}
+
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.model-item {
+  background-color: var(--nat-4);
+  color: var(--white);
+  border: 1px solid var(--nat-2);
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.model-item:hover {
+  background-color: var(--nat-5);
+  border-color: var(--white);
+  box-shadow: 0 0 10px rgba(182, 247, 170, 0.3);
+}
+
+.model-title {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.model-desc {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.loading {
+  color: var(--nat-2);
+  text-align: center;
+  padding: 40px 20px;
+  font-weight: bold;
+}
+
+.no-models {
+  color: var(--nat-2);
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.hidden-btn {
+  display: none !important;
+}

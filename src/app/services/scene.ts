@@ -238,6 +238,7 @@ export class SceneService {
    * Actualiza la opacidad de todos los muros
    */
   updateWallsOpacity(opacity: number): void {
+    if (!this.scene) return; // Guard: escena aún no inicializada
     this.scene.traverse((obj) => {
       if (obj instanceof THREE.Mesh && obj.userData['isMuro'] === true) {
         const mat = obj.material as THREE.MeshStandardMaterial;
@@ -337,6 +338,53 @@ export class SceneService {
    */
   render(): void {
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /**
+   * Limpia todos los objetos de la escena sin destruir la escena en sí
+   */
+  clearScene(): void {
+    // Recorrer todos los objetos y eliminarlos
+    const objectsToRemove = [...this.scene.children];
+    objectsToRemove.forEach((obj) => {
+      // Limpiar recursos de meshes
+      obj.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry?.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+          } else {
+            child.material?.dispose();
+          }
+        }
+      });
+      // Remover del escenario
+      this.scene.remove(obj);
+    });
+  }
+
+  /**
+   * Limpia solo los elementos del modelo (bloques, muros, pisos, decoraciones)
+   * sin destruir el entorno (suelo, montañas, guías, cámara, luces)
+   */
+  clearModelElements(): void {
+    const elementsToRemove = this.scene.children.filter(
+      obj => obj.userData['isModelElement'] === true
+    );
+    
+    elementsToRemove.forEach((obj) => {
+      obj.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry?.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+          } else {
+            child.material?.dispose();
+          }
+        }
+      });
+      this.scene.remove(obj);
+    });
   }
 
   /**

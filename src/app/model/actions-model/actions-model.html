@@ -40,6 +40,12 @@
       <button class="action-button main-dark" (click)="saveModel()">
         <img src="/assets/house-Icon.svg" alt="casa">
       </button>
+
+      <img class="separator" src="/assets/next-Icon.svg" alt="next">
+
+      <button class="action-button main-dark hidden-btn" (click)="openLoadModelModal()">
+        <img src="/assets/house-Icon.svg" alt="cargar">
+      </button>
     </div>
   </nav>
 
@@ -101,6 +107,48 @@
 <div id="tutorials">
   <div id="messageBox" [class.show]="isAddBrickActive || isDecorationsActive">
     {{ getMessage() }}
+  </div>
+</div>
+
+<div class="confirm-modal-overlay" *ngIf="isSaveModalOpen">
+  <div class="confirm-modal">
+    <h3>Guardar Modelo</h3>
+    <div class="modal-content">
+      <label>Título del modelo:</label>
+      <input type="text" [(ngModel)]="saveTitle" placeholder="Ej: Casa moderna" class="modal-input">
+
+      <label>Descripción (opcional):</label>
+      <textarea [(ngModel)]="saveDescription" placeholder="Ej: Casa de 3 pisos" class="modal-textarea"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-confirm" (click)="confirmSaveModel()">Guardar</button>
+      <button class="btn-cancel" (click)="cancelSaveModel()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="confirm-modal-overlay" *ngIf="isLoadModalOpen">
+  <div class="confirm-modal load-modal">
+    <h3>Cargar Modelo</h3>
+    <div class="modal-content">
+      <div *ngIf="isLoadingModels" class="loading">
+        Cargando modelos...
+      </div>
+      <div *ngIf="!isLoadingModels && availableModels.length > 0" class="models-list">
+        <button *ngFor="let model of availableModels"
+                class="model-item"
+                (click)="loadSelectedModel(model.id)">
+          <span class="model-title">{{ model.title }}</span>
+          <span class="model-desc">{{ model.description }}</span>
+        </button>
+      </div>
+      <div *ngIf="!isLoadingModels && availableModels.length === 0" class="no-models">
+        No hay modelos disponibles
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="closeLoadModelModal()">Cerrar</button>
+    </div>
   </div>
 </div>
 

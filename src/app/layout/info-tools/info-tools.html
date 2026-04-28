@@ -22,5 +22,17 @@
             <p>Guarda y conoce el precio de tu construcción</p>
         </div>
     </div>
-    <button class="btn-create" (click)="goToModel()">Empieza a crear tu modelo</button>
+    <button class="btn-create" (click)="openChoiceModal()">Empieza a crear tu modelo</button>
+
+    @if (isChoiceModalOpen) {
+      <div class="confirm-modal-overlay">
+        <div class="confirm-modal">
+          <h3>¿Qué deseas hacer?</h3>
+          <div class="modal-actions">
+            <button class="btn-confirm modal-btn" (click)="chooseLoadOld()">Cargar proyecto antiguo</button>
+            <button class="btn-cancel modal-btn" (click)="chooseNewModel()">Crear modelo nuevo</button>
+          </div>
+        </div>
+      </div>
+    }
 </div>

@@ -9,7 +9,7 @@ import * as THREE from 'three';
 export class ModelStateService {
   private currentModel: Model3DResponse = {
     id: 0,
-    Title: '',
+    title: '',
     description: '',
     materials: [],
     owner: { id: 1, username: 'admin', email: 'admin@biohouse.co' } // Se debe setear al iniciar
@@ -19,7 +19,7 @@ export class ModelStateService {
 
   // Actualiza los metadatos básicos
   updateBasicInfo(title: string, desc: string, user: UserRequest) {
-    this.currentModel.Title = title;
+    this.currentModel.title = title;
     this.currentModel.description = desc;
     this.currentModel.owner = user;
   }
@@ -34,8 +34,14 @@ export class ModelStateService {
       rotationX: obj.rotation.x,
       rotationY: obj.rotation.y,
       rotationZ: obj.rotation.z,
-      opacity: 0, // O extraer del material
-      assetPath: obj.userData['assetPath'] || ''
+      opacity: obj.userData['opacity'] || 1,
+      assetPath: obj.userData['assetPath'] || '',
+      blockSize: obj.userData['blockSize'] || 'full',
+      scaleX: obj.scale.x,
+      scaleY: obj.scale.y,
+      scaleZ: obj.scale.z,
+      floorLevel: obj.userData['floorLevel'] || 0,
+      isStarterBlock: obj.userData['isStarterBlock'] || false
     }));
   }
 
@@ -46,5 +52,20 @@ export class ModelStateService {
     } else {
       return this.apiService.saveModel(this.currentModel);
     }
+  }
+
+  // Cargar un modelo guardado
+  loadModel(modelData: Model3DResponse) {
+    this.currentModel = modelData;
+  }
+
+  // Obtener el modelo actual
+  getCurrentModel(): Model3DResponse {
+    return this.currentModel;
+  }
+
+  // Obtener los materiales para reconstruir la escena
+  getMaterials(): MaterialsResponse[] {
+    return this.currentModel.materials;
   }
 }

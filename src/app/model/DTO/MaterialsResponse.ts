@@ -8,4 +8,10 @@ export interface MaterialsResponse {
   rotationZ: number;
   opacity: number;
   assetPath: string;
+  blockSize?: 'full' | 'half';
+  scaleX?: number;
+  scaleY?: number;
+  scaleZ?: number;
+  floorLevel?: number;
+  isStarterBlock?: boolean;
 }

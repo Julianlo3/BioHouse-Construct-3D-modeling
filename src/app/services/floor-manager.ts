@@ -86,6 +86,10 @@ export class FloorManagerService {
    * Devuelve la posición donde debe colocarse el bloque inicial, o null si no se pudo.
    */
   addFloor(wallsOfCurrentFloor: THREE.Object3D[]): { x: number; z: number; baseY: number } | null {
+    console.log('[DEBUG addFloor] Pisos actuales:', this.floors.length);
+    console.log('[DEBUG addFloor] Piso activo:', this.currentFloor);
+    console.log('[DEBUG addFloor] Muros encontrados para el piso', this.currentFloor, ':', wallsOfCurrentFloor.length);
+    
     if (this.floors.length >= 5) {
       console.warn('Se alcanzó el máximo de 5 pisos.');
       return null;
@@ -126,6 +130,61 @@ export class FloorManagerService {
     });
 
     return { x: minX, z: refZ, baseY: newBaseY };
+  }
+
+  /**
+   * Resetea los pisos al estado inicial (solo piso 1)
+   */
+  resetFloors(): void {
+    this.floors = [{
+      level: 1,
+      baseY: 0,
+      opacity: 1.0,
+      slab: null,
+    }];
+    this.currentFloor = 1;
+    this.currentFloor$.next(1);
+    this.floorsUpdated$.next([...this.floors]);
+    console.log('[DEBUG resetFloors] Pisos actuales:', this.floors.length);
+  }
+
+  /**
+   * Crea los pisos basándose en los floorLevel de los materiales cargados
+   * Se llama DESPUÉS de cargar los bloques
+   */
+  loadFloorsFromData(materialsData: any[]): void {
+    if (!materialsData || materialsData.length === 0) return;
+
+    const floorLevels = new Set(
+      materialsData.map((m: any) => m.floorLevel || 1)
+    );
+    const maxFloor = Math.max(...Array.from(floorLevels) as number[]);
+    
+    console.log('[DEBUG loadFloorsFromData] floorLevels encontrados:', Array.from(floorLevels));
+    console.log('[DEBUG loadFloorsFromData] maxFloor:', maxFloor);
+
+    for (let level = 2; level <= maxFloor; level++) {
+      const wallsOfLevel = this.sceneService.getWalls(level);
+      console.log('[DEBUG loadFloorsFromData] nivel', level, '- muros encontrados:', wallsOfLevel.length);
+      
+      if (wallsOfLevel.length > 0) {
+        const newBaseY = (level - 1) * this.alturaEntrepiso;
+        const slab = this.buildSlab(wallsOfLevel, newBaseY);
+        
+        const newFloor: FloorData = {
+          level: level,
+          baseY: newBaseY,
+          opacity: 1.0,
+          slab: slab,
+        };
+        
+        this.floors.push(newFloor);
+      }
+    }
+    
+    this.floorsUpdated$.next([...this.floors]);
+    console.log('[DEBUG loadFloorsFromData] Pisos creados:', this.floors.length);
+    console.log('[DEBUG loadFloorsFromData] Lista:', this.floors.map(f => f.level));
   }
 
   // ─── Losa ─────────────────────────────────────────────────────────────────

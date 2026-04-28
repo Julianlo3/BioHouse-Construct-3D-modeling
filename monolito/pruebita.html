@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Viewer Modelos 3D</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e1e2f, #2a2a3b);
+            color: #fff;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 10;
+            min-width: 250px;
+        }
+
+        #ui h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            color: #e0e0ff;
+        }
+
+        #ui input {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 8px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff00;
+        }
+
+        #ui button {
+            width: 100%;
+            padding: 6px;
+            background: #4e54c8;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #ui button:hover {
+            background: #6a71e0;
+        }
+
+        #modelList {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .model-item {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .model-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui">
+        <h2>Cargar modelo por ID</h2>
+        <input type="number" id="modelId" placeholder="ID del modelo" />
+        <button onclick="cargarModelo()">Cargar Modelo</button>
+        <hr />
+        <h2>Listar modelos por Usuario</h2>
+        <input type="number" id="userId" placeholder="ID del usuario" />
+        <button onclick="cargarModelosPorUsuario()">Listar Modelos</button>
+        <div id="modelList"></div>
+    </div>
+    <script type="module">
+        import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+        import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+        import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+
+        // three.js setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        const controls = new OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 2, 5);
+        const light = new THREE.HemisphereLight(0xffffff, 0x444444);
+        scene.add(light);
+        const loader = new GLTFLoader();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Helper to clear current 3D objects (keep light)
+        function clearScene() {
+            const toRemove = [];
+            scene.traverse(obj => { if (obj.type !== 'HemisphereLight' && obj.type !== 'Scene') toRemove.push(obj); });
+            toRemove.forEach(o => scene.remove(o));
+        }
+
+        // Load a single model by its ID (existing endpoint)
+        window.cargarModelo = async function () {
+            const id = document.getElementById('modelId').value;
+            if (!id) return alert('Ingresa un ID de modelo');
+            try {
+                const res = await fetch('http://localhost:8080/api/models/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: Number(id) })
+                });
+                const data = await res.json();
+                console.log('Modelo recibido:', data);
+                clearScene();
+                scene.add(light);
+                const path = data.materials[0].assetPath;
+                loader.load(path, gltf => {
+                    const model = gltf.scene;
+                    const mat = data.materials[0];
+                    model.position.set(mat.positionX, mat.positionY, mat.positionZ);
+                    model.rotation.set(mat.rotationX, mat.rotationY, mat.rotationZ);
+                    scene.add(model);
+                });
+            } catch (e) { console.error(e); alert('Error al cargar modelo'); }
+        };
+
+        // Load all models belonging to a user and display a selectable list
+        window.cargarModelosPorUsuario = async function () {
+            const userId = document.getElementById('userId').value;
+            if (!userId) return alert('Ingresa un ID de usuario');
+            try {
+                const res = await fetch('http://localhost:8080/api/models/user/list', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: Number(userId) })
+                });
+                const list = await res.json(); // Expect array of Model3DResponseUnique
+                console.log('Modelos del usuario:', list);
+                const container = document.getElementById('modelList');
+                container.innerHTML = '';
+                list.forEach((modelInfo, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'model-item';
+                    div.textContent = `${modelInfo.id} - ${modelInfo.title || modelInfo.Title || 'Sin título'}`;
+                    div.onclick = async () => {
+                        // Load selected model into scene
+                        clearScene();
+                        scene.add(light);
+                        const path = modelInfo.materials[0].assetPath;
+                        loader.load(path, gltf => {
+                            const model = gltf.scene;
+                            const mat = modelInfo.materials[0];
+                            model.position.set(mat.positionX, mat.positionY, mat.positionZ);
+                            model.rotation.set(mat.rotationX, mat.rotationY, mat.rotationZ);
+                            scene.add(model);
+                        });
+                    };
+                    container.appendChild(div);
+                });
+            } catch (e) { console.error(e); alert('Error al obtener lista de modelos'); }
+        };
+
+        // Adjust renderer on window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>

@@ -172,6 +172,12 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
         this.handleAddFloor();
       })
     );
+
+    this.subscription.add(
+      this.cubeSelectionService.loadModel$.subscribe((modelData) => {
+        this.loadModel(modelData);
+      })
+    );
   }
 
   // =========================================================================
@@ -309,6 +315,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     // Recolectar muros del piso activo ANTES de cambiar de nivel
     const currentLevel = this.floorManager.getActiveFloorLevel();
     const currentWalls = this.sceneService.getWalls(currentLevel);
+    
+    console.log('[DEBUG handleAddFloor] Piso:', currentLevel, '- Muros encontrados:', currentWalls.length);
 
     if (currentWalls.length === 0) {
       window.alert('El piso actual no tiene muros. Construye al menos un muro antes de agregar otro piso.');
@@ -460,6 +468,41 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       },
       error: (err) => console.error('Error al guardar', err)
     });
+  }
+
+  loadModel(modelData: any) {
+    // 1. Limpiar elementos del modelo actual (sin borrar entorno)
+    this.sceneService.clearModelElements();
+    
+    // 2. Resetear contadores y estados
+    this.modelStateService.loadModel(modelData);
+    this.blockBuilder.resetBlockCount();
+    
+    // 3. Resetear pisos (solo piso 1)
+    this.floorManager.resetFloors();
+    
+    // 4. Cargar los BLOQUES Y DECORACIONES primero (importante: antes de crear pisos)
+    this.blockBuilder.loadModelFromData(modelData.materials);
+    
+    // 5. Ahora que los bloques existen, crear los pisos basándose en los floorLevel
+    if (modelData.materials && modelData.materials.length > 0) {
+      const floorLevels = new Set(
+        modelData.materials.map((m: any) => m.floorLevel || 1)
+      );
+      const maxFloor = Math.max(...Array.from(floorLevels) as number[]);
+      
+      if (maxFloor > 1) {
+        this.floorManager.loadFloorsFromData(modelData.materials);
+      }
+    }
+    
+    // 6. Activar el piso 1 por defecto
+    this.floorManager.setActiveFloor(1);
+    this.cubeSelectionService.setFloorLevel(1);
+    
+    console.log('[DEBUG loadModel] Pisos totales:', this.floorManager.getFloorCount());
+    console.log('[DEBUG loadModel] Piso activo:', this.floorManager.getActiveFloorLevel());
+    console.log('Modelo cargado con éxito:', modelData.title);
   }
 
 }

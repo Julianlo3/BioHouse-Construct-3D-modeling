@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://ep-fancy-haze-amupuyi4-pooler.c-5.us-east-1.aws.neon.tech/monolitodb?sslmode=require
+    username: neondb_owner
+    password: npg_mbAVYt0LR8zd
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update   # ⚠️ cambia esto, te explico abajo
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always

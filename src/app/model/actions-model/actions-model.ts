@@ -1,15 +1,20 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CubeSelectionService } from '../../services/cube-selection.service';
 import { Subscription } from 'rxjs';
 import { SceneService } from '../../services/scene';
 import { BlockBuilderService } from '../../services/block-builder';
 import { FloorManagerService, FloorData } from '../../services/floor-manager';
+import { Model3dService } from '../../services/api-services';
+import { Model3DResponseUnique, UserRequest } from '../../model/DTO/dto';
 
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ModelStateService } from '../../services/ModelStateService';
+import { NavigationStateService } from '../../services/navigation-state.service';
 
 @Component({
   selector: 'app-actions-model',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './actions-model.html',
   styleUrl: './actions-model.css',
 })
@@ -26,6 +31,12 @@ export class ActionsModel implements OnInit, OnDestroy {
   floorArea: number = 0;
   isFloorModalOpen = false;
   isWallModalOpen = false;
+  isLoadModalOpen = false;
+  isSaveModalOpen = false;
+  saveTitle: string = '';
+  saveDescription: string = '';
+  availableModels: Model3DResponseUnique[] = [];
+  isLoadingModels = false;
 
   // ─── Estado de pisos ─────────────────────────────────────────────────────
   floors: FloorData[] = [];
@@ -37,7 +48,11 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   constructor(private cubeSelectionService: CubeSelectionService, private sceneService: SceneService,
               private blockBuilderService: BlockBuilderService,
-              private floorManagerService: FloorManagerService) {}
+              private floorManagerService: FloorManagerService,
+              private model3dService: Model3dService,
+              private modelStateService: ModelStateService,
+              private navigationState: NavigationStateService,
+              private cdr: ChangeDetectorRef) {}
 
 
   ngOnInit(): void {
@@ -72,6 +87,13 @@ export class ActionsModel implements OnInit, OnDestroy {
         this.floorOpacity = this.floorManagerService.getFloorOpacity(level);
       })
     );
+
+    // Verificar si el usuario eligió cargar un proyecto antiguo
+    if (this.navigationState.loadOldProject()) {
+      this.isLoadModalOpen = true;
+      this.loadAvailableModels();
+      this.navigationState.loadOldProject.set(false);
+    }
   }
 
 
@@ -157,8 +179,11 @@ export class ActionsModel implements OnInit, OnDestroy {
   // ─── Gestión de pisos ────────────────────────────────────────────────────
 
   canAddFloor(): boolean {
-    return this.floors.length < 5 && this.activeFloorLevel === this.floors.length;
-  }
+  console.log('[DEBUG canAddFloor] floors.length:', this.floors.length);
+  console.log('[DEBUG canAddFloor] activeFloorLevel:', this.activeFloorLevel);
+  console.log('[DEBUG canAddFloor] resultado:', this.floors.length < 5 && this.activeFloorLevel === this.floors.length);
+  return this.floors.length < 5 && this.activeFloorLevel === this.floors.length;
+}
 
   addFloor(): void {
     this.cubeSelectionService.requestAddFloor();
@@ -228,8 +253,88 @@ export class ActionsModel implements OnInit, OnDestroy {
   }
 
   saveModel() {
+    this.saveTitle = '';
+    this.saveDescription = '';
+    this.isSaveModalOpen = true;
+  }
+
+  confirmSaveModel() {
+    if (!this.saveTitle.trim()) {
+      window.alert('Por favor ingresa un título para el modelo');
+      return;
+    }
+
+    console.log(`💾 Guardando modelo: "${this.saveTitle}"`);
+    this.modelStateService.updateBasicInfo(this.saveTitle, this.saveDescription,
+      { id: 1, username: 'admin', email: 'admin@biohouse.co' });
+
     this.cubeSelectionService.requestSaveModel();
-    window.alert('Modelo guardado');
+    this.isSaveModalOpen = false;
+    window.alert('✅ Modelo guardado correctamente');
+  }
+
+  cancelSaveModel() {
+    this.isSaveModalOpen = false;
+    this.saveTitle = '';
+    this.saveDescription = '';
+  }
+
+  openLoadModelModal(): void {
+    console.log('🔓 Abriendo modal de carga...');
+    this.isLoadModalOpen = true;
+    this.loadAvailableModels();
+  }
+
+  closeLoadModelModal(): void {
+    console.log('🔒 Cerrando modal de carga');
+    this.isLoadModalOpen = false;
+    this.availableModels = [];
+  }
+
+  private loadAvailableModels(): void {
+    console.log('📡 Cargando modelos del backend...');
+    this.isLoadingModels = true;
+    // Usar admin por defecto - en producción esto debería venir del usuario logueado
+    const userRequest: UserRequest = { id: 1, username: 'admin', email: 'admin@biohouse.co' };
+
+    console.log('Enviando request:', userRequest);
+    this.model3dService.listModelsByUser(userRequest).subscribe({
+      next: (models) => {
+        console.log('✅ Modelos recibidos:', models);
+        this.availableModels = models;
+        this.isLoadingModels = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar modelos:', err);
+        window.alert('Error al cargar la lista de modelos: ' + err.message);
+        this.isLoadingModels = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadSelectedModel(modelId: number): void {
+    // Solicitar el modelo completo con sus datos
+    const request = { id: modelId, title: '', description: '' };
+
+    this.model3dService.findModel(request).subscribe({
+      next: (fullModel) => {
+        // Limpiar la escena actual
+        this.sceneService.clearModelElements();
+
+        // Cargar el modelo en el servicio de estado
+        this.cubeSelectionService.requestLoadModel(fullModel);
+
+        // Cerrar modal
+        this.isLoadModalOpen = false;
+        this.availableModels = [];
+      },
+      error: (err) => {
+        console.error('Error al cargar el modelo:', err);
+        window.alert('Error al cargar el modelo');
+      }
+    });
   }
 
 }

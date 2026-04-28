@@ -1,5 +1,5 @@
 export interface Model3DResponseUnique {
   id: number;
-  Title: string;
+  title: string;
   description: string;
 }

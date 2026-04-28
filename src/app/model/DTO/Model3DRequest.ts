@@ -1,5 +1,5 @@
 export interface Model3DRequest {
   id: number;
-  Title: string;
+  title: string;
   description: string;
 }
