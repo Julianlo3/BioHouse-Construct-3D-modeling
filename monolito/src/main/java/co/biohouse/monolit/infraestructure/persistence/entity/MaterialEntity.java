@@ -48,6 +48,21 @@ public class MaterialEntity {
     @Column(name="floor_level", nullable = false)
     private int floorLevel;
 
+    @Column(name="block_size")
+    private String blockSize;
+
+    @Column(name="scale_x")
+    private Double scaleX;
+
+    @Column(name="scale_y")
+    private Double scaleY;
+
+    @Column(name="scale_z")
+    private Double scaleZ;
+
+    @Column(name="is_starter_block")
+    private Boolean isStarterBlock;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "model_id", nullable = false)
     private Model3DEntity model;

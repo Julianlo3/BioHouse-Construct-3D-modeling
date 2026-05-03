@@ -9,6 +9,11 @@ public class Material {
     private double opacity;
     private String assetPath;
     private int floorLevel;
+    private String blockSize;
+    private Double scaleX;
+    private Double scaleY;
+    private Double scaleZ;
+    private Boolean isStarterBlock;
 
     public Material() {
         this.typeMaterial = "";
@@ -21,6 +26,11 @@ public class Material {
         this.opacity = 0;
         this.assetPath = "";
         this.floorLevel = 0;
+        this.blockSize = "full";
+        this.scaleX = 1.0;
+        this.scaleY = 1.0;
+        this.scaleZ = 1.0;
+        this.isStarterBlock = false;
     }
 
     public Material(String typeMaterial, double positionX, double positionY, double positionZ,
@@ -116,5 +126,45 @@ public class Material {
 
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;
+    }
+
+    public String getBlockSize() {
+        return blockSize;
+    }
+
+    public void setBlockSize(String blockSize) {
+        this.blockSize = blockSize;
+    }
+
+    public Double getScaleX() {
+        return scaleX;
+    }
+
+    public void setScaleX(Double scaleX) {
+        this.scaleX = scaleX;
+    }
+
+    public Double getScaleY() {
+        return scaleY;
+    }
+
+    public void setScaleY(Double scaleY) {
+        this.scaleY = scaleY;
+    }
+
+    public Double getScaleZ() {
+        return scaleZ;
+    }
+
+    public void setScaleZ(Double scaleZ) {
+        this.scaleZ = scaleZ;
+    }
+
+    public Boolean getIsStarterBlock() {
+        return isStarterBlock;
+    }
+
+    public void setIsStarterBlock(Boolean isStarterBlock) {
+        this.isStarterBlock = isStarterBlock;
     }
 }

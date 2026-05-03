@@ -54,6 +54,11 @@ public class MapperEntity {
             me.setOpacity((float) m.getOpacity());
             me.setAssetPath(m.getAssetPath());
             me.setFloorLevel(m.getFloorLevel());
+            me.setBlockSize(m.getBlockSize());
+            me.setScaleX(m.getScaleX());
+            me.setScaleY(m.getScaleY());
+            me.setScaleZ(m.getScaleZ());
+            me.setIsStarterBlock(m.getIsStarterBlock());
             me.setModel(modelEntity); // Referencia circular necesaria para JPA
             return me;
         }).collect(Collectors.toList());
@@ -91,6 +96,11 @@ public class MapperEntity {
                 e.getAssetPath()
             );
             material.setFloorLevel(e.getFloorLevel());
+            material.setBlockSize(e.getBlockSize());
+            material.setScaleX(e.getScaleX());
+            material.setScaleY(e.getScaleY());
+            material.setScaleZ(e.getScaleZ());
+            material.setIsStarterBlock(e.getIsStarterBlock());
             return material;
         }).collect(Collectors.toList());
     }

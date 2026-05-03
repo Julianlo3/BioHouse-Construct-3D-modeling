@@ -49,6 +49,11 @@ public class MapperDTO {
                 dto.getAssetPath()
             );
             material.setFloorLevel(dto.getFloorLevel());
+            material.setBlockSize(dto.getBlockSize());
+            material.setScaleX(dto.getScaleX());
+            material.setScaleY(dto.getScaleY());
+            material.setScaleZ(dto.getScaleZ());
+            material.setIsStarterBlock(dto.getIsStarterBlock());
             return material;
         }).collect(Collectors.toList());
     }
@@ -67,6 +72,11 @@ public class MapperDTO {
             dto.setOpacity(m.getOpacity());
             dto.setAssetPath(m.getAssetPath());
             dto.setFloorLevel(m.getFloorLevel());
+            dto.setBlockSize(m.getBlockSize());
+            dto.setScaleX(m.getScaleX());
+            dto.setScaleY(m.getScaleY());
+            dto.setScaleZ(m.getScaleZ());
+            dto.setIsStarterBlock(m.getIsStarterBlock());
             return dto;
         }).collect(Collectors.toList());
     }

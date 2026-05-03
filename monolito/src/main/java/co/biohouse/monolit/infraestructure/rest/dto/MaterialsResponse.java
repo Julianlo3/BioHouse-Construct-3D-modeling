@@ -16,6 +16,11 @@ public class MaterialsResponse {
     private double opacity;
     private String assetPath;
     private int floorLevel;
+    private String blockSize;
+    private Double scaleX;
+    private Double scaleY;
+    private Double scaleZ;
+    private Boolean isStarterBlock;
 
     public MaterialsResponse() {
         this.typeMaterial = "";
