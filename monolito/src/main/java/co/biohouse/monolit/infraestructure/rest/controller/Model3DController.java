@@ -22,9 +22,7 @@ public class Model3DController {
 
     private final MapperDTO mapperDTO = new MapperDTO();
 
-    /**
-     * Recibe un Model3DResponse, lo mapea a dominio y lo guarda.
-     */
+    
     @PostMapping("/save")
     public ResponseEntity<Model3DResponse> saveModel(@RequestBody Model3DResponse responseDTO) {
         Model3D modelDomain = mapperDTO.model3DResponseToModel3D(responseDTO);
@@ -39,9 +37,7 @@ public class Model3DController {
         return new ResponseEntity<>(mapperDTO.model3DToModel3DResponse(savedModel), HttpStatus.OK);
     }
 
-    /**
-     * Recibe un UserRequest, busca sus modelos y devuelve una lista de Model3DResponseUnique.
-     */
+
     @PostMapping("/user/list")
     public ResponseEntity<List<Model3DResponseUnique>> listModelsByUser(@RequestBody UserRequest userRequest) {
         User userDomain = mapperDTO.userRequestToUser(userRequest);
@@ -50,9 +46,7 @@ public class Model3DController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Recibe Model3DRequest y ejecuta la eliminación.
-     */
+
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteModel(@RequestBody Model3DRequest request) {
         Model3D modelDomain = mapperDTO.model3DRequestToModel3D(request);
@@ -60,9 +54,7 @@ public class Model3DController {
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
-    /**
-     * Recibe Model3DRequest para buscar o procesar un modelo específico.
-     */
+
     @PostMapping("/search")
     public ResponseEntity<Model3DResponse> findModel(@RequestBody Model3DRequest request) {
         Model3D response = this.modelService.getModelById(request.getId());

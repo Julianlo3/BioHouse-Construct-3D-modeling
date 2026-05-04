@@ -1,6 +1,6 @@
 package co.biohouse.monolit.infraestructure.persistence.repositorys;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 import jakarta.persistence.NoResultException;
@@ -23,39 +23,34 @@ public class Model3DRepository implements Model3DRepositoryPort {
     @Override
     @Transactional
     public Model3DEntity saveModel(Model3DEntity model) {
-        // 1. Manejar el ID para que sea un INSERT
+        // Manejo de id
         if (model.getId() != null && model.getId() == 0L) {
             model.setId(null);
         }
 
-        // 2. En lugar de .clear(), simplemente nos aseguramos
-        // de que cada hijo tenga la referencia al padre.
-        // JPA se encargará del resto gracias al CascadeType.ALL
+        // Asignar la relación de todos los hijos (metriales) al modelo padre antes de persistir.
         if (model.getMaterials() != null) {
             for (MaterialEntity material : model.getMaterials()) {
                 material.setModel(model);
             }
         }
 
-        // 3. Persistir el modelo.
-        // Al tener CascadeType.ALL, guardará los materiales automáticamente.
+        // Persistir modelo
         if (model.getId() == null) {
             entityManager.persist(model);
         } else {
             model = entityManager.merge(model);
         }
 
-        // 4. Sincronizar con la base de datos para obtener el ID de vuelta
+        // Soncronizar base de datos
         entityManager.flush();
 
         return model;
     }
 
     @Override
-    @Transactional(readOnly = true) // Asegura que haya una sesión abierta
+    @Transactional(readOnly = true)
     public Model3DEntity getModelById(Long id) {
-        // Usar una consulta JPQL con JOIN FETCH es la forma más eficiente
-        // de traer el modelo y sus materiales en una sola consulta.
         try {
             return entityManager.createQuery(
                             "SELECT m FROM Model3DEntity m LEFT JOIN FETCH m.materials WHERE m.id = :id",
