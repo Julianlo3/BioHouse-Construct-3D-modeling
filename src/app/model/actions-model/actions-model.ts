@@ -153,6 +153,7 @@ export class ActionsModel implements OnInit, OnDestroy {
   // Confirmación para construir muro
   confirmBuildWall() {
     this.cubeSelectionService.requestConstruirMuro();
+    this.buildFloor(); // Calcula el área y crea la losa del suelo al levantar el muro
     this.isWallModalOpen = false;
   }
 
