@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { SceneService } from './scene';
 import { BlockBuilderService } from './block-builder';
 import { AssetLoaderService } from './asset-loader';
+import { CubeSelectionService } from './cube-selection.service';
 
 const DOOR_DIMENSIONS = {
   width: 3,
@@ -24,11 +25,13 @@ export class DecorationService {
   private decorationTargetPosition: THREE.Vector3 | null = null;
   private numRotation: number = 0;
   private decorationKeyListener: ((event: KeyboardEvent) => void) | null = null;
+  private lastSelectedCube: THREE.Object3D | null = null;  // Guardar selectedCube para el callback
 
   constructor(
     private sceneService: SceneService,
     private blockBuilder: BlockBuilderService,
-    private assetLoader: AssetLoaderService
+    private assetLoader: AssetLoaderService,
+    private cubeSelectionService: CubeSelectionService
   ) {}
 
   /**
@@ -40,6 +43,7 @@ export class DecorationService {
   ): void {
     this.isAddingDecoration = true;
     this.numRotation = 0;
+    this.lastSelectedCube = selectedCube; // Guardar para usarlo después
 
     // Solo se permie iniciar decoraciona bloque completo
 
@@ -53,6 +57,7 @@ export class DecorationService {
       this.decorationTargetPosition = selectedCube.position.clone();
     } else {
       this.decorationTargetPosition = null;
+      this.lastSelectedCube = null;
     }
 
     const { width, depth } = this.getSelectedBlockDimensions(selectedCube);
@@ -67,15 +72,9 @@ export class DecorationService {
     this.selectionMesh = new THREE.Mesh(geometry, material);
     this.selectionMesh.rotation.x = -Math.PI / 2;
 
-    if (this.decorationTargetPosition) {
-      this.selectionMesh.position.copy(this.decorationTargetPosition);
-      // Ajustar altura para que no quede enterrado en el piso
-      if(this.decorationTargetPosition.y <= 0.5) {
-        this.selectionMesh.position.y += 0.05;
-      }
-    } else {
-      this.selectionMesh.position.set(0.5, 0.05, 0.5);
-    }
+    
+    this.selectionMesh.position.set(0.5, 0.5, 0.5);
+  
 
     this.sceneService.add(this.selectionMesh);
 
@@ -127,6 +126,10 @@ export class DecorationService {
     if (selectedCube && this.selectionMesh) {
       this.decorationTargetPosition = selectedCube.position.clone();
       this.selectionMesh.position.copy(this.decorationTargetPosition);
+      this.lastSelectedCube = selectedCube;
+      if(this.decorationTargetPosition.y <= 2) {
+        this.selectionMesh.position.y = 0.5;
+      }
     }
   }
 
@@ -141,6 +144,8 @@ export class DecorationService {
 
     const targetPosition = this.selectionMesh.position.clone();
     const targetRotation = this.selectionMesh.rotation.clone();
+    const savedNumRotation = this.numRotation;  // Guardar rotación antes de cancelar
+    const savedSelectedCube = this.lastSelectedCube || selectedCube;  // Usar el guardado
 
     this.cancelAddingDecoration();
 
@@ -160,24 +165,25 @@ export class DecorationService {
 
         newDecoration.position.set(
           targetPosition.x,
-          selectedCube ? selectedCube.position.y : targetPosition.y,
+          savedSelectedCube ? savedSelectedCube.position.y : targetPosition.y,
           targetPosition.z
         );
 
-        // Eliminar cubos que se solapan
-        if (selectedCube) {
+        // Eliminar cubos que se solapan ANTES de agregar la decoración
+        if (savedSelectedCube) {
+          console.log("Eliminando cubos solapados");
           const decorationHeight = dimensions.height;
-          const baseY = selectedCube.position.y;
+          const baseY = savedSelectedCube.position.y;
           const cubosTieneQueBorrados = this.sceneService
             .getWalls()
             .filter((obj) => {
               const sameX =
                 Math.abs(
-                  obj.position.x - selectedCube.position.x
+                  obj.position.x - savedSelectedCube.position.x
                 ) < 0.75;
               const sameZ =
                 Math.abs(
-                  obj.position.z - selectedCube.position.z
+                  obj.position.z - savedSelectedCube.position.z
                 ) < 0.75;
               const isAbove = obj.position.y >= baseY;
               const isWithinDecorationHeight =
@@ -192,23 +198,23 @@ export class DecorationService {
           });
         }
 
-          // Ajustes de posición según tipo
+        // Aplicar rotación DESPUÉS de limpiar cubos pero ANTES de agregar
+        if (!(savedNumRotation % 2 === 0)) {
+          newDecoration.rotation.z = Math.PI / 2;
+          newDecoration.rotation.y = Math.PI / 2;
+          newDecoration.rotation.x = -Math.PI / 2;
+        }
+
+        // Ajustes de posición según tipo
         if (modelType === 'window') {
           newDecoration.position.y -= 2;
           newDecoration.position.z -= 1;
-          if (!(this.numRotation % 2 === 0)) {
+          if (!(savedNumRotation % 2 === 0)) {
             newDecoration.position.z += 1;
           } else {
             newDecoration.position.x += 0.2;
             newDecoration.position.z += 0.8;
           }
-        }
-
-        if (!(this.numRotation % 2 === 0)) {
-          this.numRotation = 0;
-          newDecoration.rotation.z = Math.PI / 2;
-          newDecoration.rotation.y = Math.PI / 2;
-          newDecoration.rotation.x = -Math.PI / 2;
         }
 
         newDecoration.userData['isModelElement'] = true;
@@ -221,7 +227,7 @@ export class DecorationService {
   }
 
   /**
-   * Cancela la adición de decoración
+   * Cancela la adición de decoración y desactiva ambos modos
    */
   cancelAddingDecoration(): void {
     if (this.selectionMesh) {
@@ -230,11 +236,18 @@ export class DecorationService {
     }
 
     this.isAddingDecoration = false;
+    this.numRotation = 0;
+    this.lastSelectedCube = null;
     document.body.classList.remove('mouse-red-cursor');
 
     if (this.decorationKeyListener) {
       window.removeEventListener('keydown', this.decorationKeyListener);
+      this.decorationKeyListener = null;
     }
+
+    // Desactivar ambos modos - no reactivar raycaster automáticamente
+    this.cubeSelectionService.setRaycasterActive(false);
+    this.cubeSelectionService.setDecorationActive(false);
   }
 
   /**

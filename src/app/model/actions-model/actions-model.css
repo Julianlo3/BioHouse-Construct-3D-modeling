@@ -483,3 +483,26 @@
 .hidden-btn {
   display: none !important;
 }
+
+.calculate-area-btn {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #34a853 0%, #b4d435 100%);
+  color: var(--black);
+  border: 1px solid var(--nat-2);
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  transition: all 0.2s;
+  box-shadow: 0 0 8px rgba(182, 247, 170, 0.2);
+}
+
+.calculate-area-btn:hover {
+  background: var(--nat-5);
+  color: var(--white);
+  border-color: var(--white);
+  box-shadow: 0 0 12px rgba(182, 247, 170, 0.4);
+}

@@ -188,7 +188,48 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     // Este evento ya es manejado por SelectionService
   }
 
+  /**
+   * Función genérica para seleccionar elementos del modelo.
+   * Diferencia entre modo normal y modo decoración para evitar conflictos.
+   * 
+   * @param intersects Intersecciones del raycaster
+   * @param mode 'normal' = selecciona cubo normal | 'decoration' = selecciona cubo para decoración
+   */
+  private selectModelElement(
+    intersects: THREE.Intersection<THREE.Object3D>[],
+    mode: 'normal' | 'decoration' = 'normal'
+  ): void {
+    const cubeHit = this.selectionService.findIntersectionByUserData(
+      intersects,
+      'isMuro',
+      true
+    );
+
+    if (!cubeHit) return;
+
+    // Se utiliza getRootGroup para asegurar que seleccionamos el bloque completo
+    const selectedGroup = this.selectionService.getRootGroup(
+      cubeHit.object
+    );
+
+    if (mode === 'decoration') {
+      // Modo decoración: solo actualiza el target sin cambiar selección visual
+      this.decorationService.updateDecorationTarget(selectedGroup);
+    } else {
+      // Modo normal: selecciona el cubo y actualiza botones flotantes
+      this.selectionService.selectCube(selectedGroup);
+      this.updateButtonPosition();
+    }
+  }
+
   private handleClick(intersects: THREE.Intersection<THREE.Object3D>[]): void {
+    // Si estamos en modo de decoración, solo actualizar el target
+    if (this.decorationService.isAddingDecorationMode()) {
+      this.selectModelElement(intersects, 'decoration');
+      return;
+    }
+
+    // Modo normal: manejar selección y deselección de cubos
     if (!this.cubeSelectionService.isRaycasterActive()) {
       const selectedCube = this.selectionService.getSelectedCube();
       if (selectedCube) {
@@ -198,31 +239,7 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
 
-    const cubeHit = this.selectionService.findIntersectionByUserData(
-      intersects,
-      'isMuro',
-      true
-    );
-
-    if (cubeHit) {
-      // Se utiliza una función recursiva (getRootGroup) porque el raycaster
-      // puede devolver una malla interna del bloque en lugar del grupo principal que lo contiene.
-      // Esto asegura la selección del bloque completo.
-      const selectedGroup = this.selectionService.getRootGroup(
-        cubeHit.object
-      );
-      this.selectionService.selectCube(selectedGroup);
-      
-      // Actualización de la posición de los botones del overlay.
-      this.updateButtonPosition();
-
-      if (
-        this.decorationService.isAddingDecorationMode() &&
-        this.cubeSelectionService.isRaycasterActive()
-      ) {
-        this.decorationService.updateDecorationTarget(selectedGroup);
-      }
-    }
+    this.selectModelElement(intersects, 'normal');
   }
 
   /**
@@ -408,6 +425,8 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     const selectedCube = this.selectionService.getSelectedCube();
     this.overlayService.clearButtons();
 
+    // Desactivar raycaster normal para evitar conflictos con la selección de decoración
+    this.cubeSelectionService.setRaycasterActive(false);
     this.cubeSelectionService.setDecorationActive(true);
 
     this.decorationService.startAddingDecoration(
@@ -422,7 +441,6 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
       }
     };
 
-
     window.addEventListener('keydown', keyListener);
     (this as any).decorationKeyListener = keyListener;
   }
@@ -431,14 +449,19 @@ export class Model3d implements AfterViewInit, OnInit, OnDestroy {
     const selectedCube = this.selectionService.getSelectedCube();
     this.overlayService.clearButtons();
     this.decorationService.addDecorationToScene(modelType, selectedCube);
-
+    
+    // Desseleccionar el cubo actual para evitar que se siga usando
+    this.selectionService.deselectCube();
+    this.updateButtonPosition();
+    
+    // No reactivar raycaster - dejar el sistema en estado neutral
+    this.cubeSelectionService.setDecorationActive(false);
+    
+    // Remover listener de decoración
     if ((this as any).decorationKeyListener) {
       window.removeEventListener('keydown', (this as any).decorationKeyListener);
+      (this as any).decorationKeyListener = null;
     }
-
-    this.cubeSelectionService.setDecorationActive(false);
-    this.cubeSelectionService.setRaycasterActive(false);
-    document.body.classList.remove('mouse-red-cursor');
   }
 
   // =========================================================================

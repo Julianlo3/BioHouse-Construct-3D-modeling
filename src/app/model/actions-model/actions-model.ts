@@ -161,6 +161,10 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.floorArea = this.blockBuilderService.buildGroundFloor();
   }
 
+  calculateArea() {
+    this.floorArea = this.blockBuilderService.buildGroundFloor();
+  }
+
   openAddFloorModal() {
     if (this.canAddFloor()) {
       this.isFloorModalOpen = true;

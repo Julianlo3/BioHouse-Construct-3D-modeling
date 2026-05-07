@@ -74,6 +74,10 @@
         {{ guiasActivas ? 'Guías ON' : 'Guías OFF' }}
       </button>
 
+      <button (click)="calculateArea()" class="calculate-area-btn">
+        Calcular Área
+      </button>
+
       <div id="metricas">
         <p>Piso activo: {{activeFloorLevel}} / {{floors.length}}</p>
         <p>Bloques: {{getNumBlocks()}}</p>
