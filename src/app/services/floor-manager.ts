@@ -8,6 +8,7 @@ export interface FloorData {
   baseY: number;      // Y base where blocks of this floor sit
   opacity: number;    // 0.2 – 1.0
   slab: THREE.Mesh | null; // losa mesh
+  area: number;       // área calculada del piso
 }
 
 /** Altura entre piso y piso (unidades del motor).
@@ -38,6 +39,7 @@ export class FloorManagerService {
       baseY: 0,
       opacity: 1.0,
       slab: null,
+      area: 0,
     });
     this.floorsUpdated$.next([...this.floors]);
   }
@@ -111,6 +113,7 @@ export class FloorManagerService {
       baseY: newBaseY,
       opacity: 1.0,
       slab,
+      area: 0,
     };
     this.floors.push(newFloor);
     this.floorsUpdated$.next([...this.floors]);
@@ -141,6 +144,7 @@ export class FloorManagerService {
       baseY: 0,
       opacity: 1.0,
       slab: null,
+      area: 0,
     }];
     this.currentFloor = 1;
     this.currentFloor$.next(1);
@@ -176,6 +180,7 @@ export class FloorManagerService {
           baseY: newBaseY,
           opacity: 1.0,
           slab: slab,
+          area: 0,
         };
         
         this.floors.push(newFloor);
@@ -232,10 +237,13 @@ export class FloorManagerService {
     // donde el bloque del nuevo piso se apoya sin hueco ni solapamiento.
     slab.position.set((minX + maxX) / 2, baseY - 0.15, (minZ + maxZ) / 2);
     slab.receiveShadow = true;
-    slab.name = `suelo_piso_${Math.round(baseY / this.alturaEntrepiso) + 1}`;
+    
+    const floorLevel = Math.round(baseY / this.alturaEntrepiso) + 1;
+    // Se nombra techo_piso_X (donde X es el piso inferior) para evitar que buildGroundFloor lo elimine
+    slab.name = `techo_piso_${floorLevel - 1}`;
     slab.userData['isModelElement'] = true;
     slab.userData['typeMaterial'] = 'floor-slab';
-    slab.userData['floorLevel'] = Math.round(baseY / this.alturaEntrepiso) + 1;
+    slab.userData['floorLevel'] = floorLevel;
 
     this.sceneService.add(slab);
     return slab;
@@ -262,6 +270,16 @@ export class FloorManagerService {
 
   getFloorOpacity(level: number): number {
     return this.floors.find(f => f.level === level)?.opacity ?? 1.0;
+  }
+
+  // ─── Área por piso ────────────────────────────────────────────────────
+
+  setFloorArea(level: number, area: number): void {
+    const floorData = this.floors.find(f => f.level === level);
+    if (floorData) {
+      floorData.area = area;
+      this.floorsUpdated$.next([...this.floors]);
+    }
   }
 
   // ─── Marcado retroactivo del piso 1 ──────────────────────────────────────

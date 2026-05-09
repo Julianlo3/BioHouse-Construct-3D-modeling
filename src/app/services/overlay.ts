@@ -37,6 +37,7 @@ export class OverlayService {
    * Actualiza la posición de los botones flotantes
    */
   updateButtonPosition(selectedCube: THREE.Object3D | null): void {
+
     // 1. Validaciones iniciales: Si no hay cubo o está en modo decoración, limpiamos botones
     if (this.cubeSelectionService.isDecorationActive() || !selectedCube) {
       this.activeButtons = [];
@@ -55,8 +56,8 @@ export class OverlayService {
     const halfW = W / 2;  // 0.2m
 
     // Offsets para encaje perfecto de caras
-    const offEsquinaX = halfL + halfW; 
-    const offEsquinaZ = halfL - halfW; 
+    const offEsquinaX = halfL + halfW;
+    const offEsquinaZ = halfL - halfW;
 
     // Separación visual de los botones respecto al modelo
     const sepX = 0.5;
