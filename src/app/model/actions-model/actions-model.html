@@ -82,7 +82,8 @@
         <p>Piso activo: {{activeFloorLevel}} / {{floors.length}}</p>
         <p>Bloques: {{getNumBlocks()}}</p>
         <p>Columnas: {{getColumnCount()}}</p>
-        <p>Área: {{ floorArea | number:'1.0-2' }} m²</p>
+        <p>Área piso {{activeFloorLevel}}: {{ getActiveFloorArea() | number:'1.0-2' }} m²</p>
+        <p>Área total: {{ getTotalArea() | number:'1.0-2' }} m²</p>
       </div>
     </div>
   </div>

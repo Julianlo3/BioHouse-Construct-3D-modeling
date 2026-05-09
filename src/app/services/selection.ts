@@ -1,6 +1,7 @@
 import { Injectable, ChangeDetectorRef } from '@angular/core';
 import * as THREE from 'three';
 import { SceneService } from './scene';
+import { OverlayService } from './overlay';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +12,7 @@ export class SelectionService {
   private selectedCube: THREE.Object3D | null = null;
   private cdr!: ChangeDetectorRef;
 
-  constructor(private sceneService: SceneService) {
+  constructor(private sceneService: SceneService,private overlayService: OverlayService) {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
   }
@@ -51,6 +52,7 @@ export class SelectionService {
       );
 
       onClickHandler(intersects);
+
     });
   }
 
@@ -67,7 +69,6 @@ export class SelectionService {
         }
       });
     }
-
     this.selectedCube = grupo;
 
     // Se aplica el resaltado visual al nuevo bloque seleccionado clonando su material

@@ -8,6 +8,7 @@ const LARGO = 3.0;
 const ANCHO = 0.4;
 const HENDIDURA = 0.17;
 const DIST_COL = 1.7;   // centro bloque → centro columna
+let COLUMNATRASERA = false;
 
 const DOOR_DIMENSIONS = {
   width: 3,
@@ -220,7 +221,12 @@ export class BlockBuilderService {
       // Extremo delantero: junto al bloque recién colocado
       this.colocarColumna(newCube, dirX, dirZ, +1);
       // Extremo trasero: junto al bloque origen del segmento
-      this.colocarColumna(this.segmento!.origen, dirX, dirZ, -1);
+
+      if(!COLUMNATRASERA){
+        this.colocarColumna(this.segmento!.origen, dirX, dirZ, -1);
+        COLUMNATRASERA = true;
+      }
+
 
       // El siguiente segmento parte desde el bloque recién colocado
       this.segmento = { origen: newCube, dirX, dirZ, contador: 0 };
@@ -336,9 +342,6 @@ export class BlockBuilderService {
     const L = refSize === 'half' ? 1.5 : 3.0;
     const distCol = L / 2 + 0.2;
 
-    // La columna se pone al extremo del largo del bloque (distCol desde su centro)
-    // en la misma dirección de avance del segmento.
-    // refBloque.position.y sitúa la columna en el piso correcto.
     col.position.set(
       refBloque.position.x + dirX * distCol * lado,
       refBloque.position.y + 4.7,
@@ -389,7 +392,7 @@ export class BlockBuilderService {
     });
 
     nuevos.forEach(m => {
-      
+
       this.sceneService.add(m)
   });
     this.numBlocks += nuevos.length;
@@ -694,11 +697,11 @@ export class BlockBuilderService {
     cube.userData['typeMaterial'] = data.typeMaterial;
     cube.userData['assetPath'] = data.assetPath || 'buildBlock';
     cube.userData['blockSize'] = blockSize;
-    
+
     // Fallback: inferir floorLevel desde posición Y si no existe
     const alturaEntrepiso = this.floorManager.getFloorHeight();
-    const inferredFloorLevel = (data.floorLevel && data.floorLevel > 0) 
-      ? data.floorLevel 
+    const inferredFloorLevel = (data.floorLevel && data.floorLevel > 0)
+      ? data.floorLevel
       : Math.floor(data.positionY / alturaEntrepiso) + 1;
     cube.userData['floorLevel'] = inferredFloorLevel;
     cube.userData['isStarterBlock'] = data.isStarterBlock || false;
@@ -820,5 +823,6 @@ export class BlockBuilderService {
   resetBlockCount(): void {
     this.numBlocks = 0;
     this.numColumns = 0;
+    COLUMNATRASERA = false;
   }
 }

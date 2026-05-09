@@ -159,10 +159,21 @@ export class ActionsModel implements OnInit, OnDestroy {
 
   buildFloor() {
     this.floorArea = this.blockBuilderService.buildGroundFloor();
+    this.floorManagerService.setFloorArea(this.activeFloorLevel, this.floorArea);
   }
 
   calculateArea() {
     this.floorArea = this.blockBuilderService.buildGroundFloor();
+    this.floorManagerService.setFloorArea(this.activeFloorLevel, this.floorArea);
+  }
+
+  getActiveFloorArea(): number {
+    const floor = this.floors.find(f => f.level === this.activeFloorLevel);
+    return floor ? floor.area : 0;
+  }
+
+  getTotalArea(): number {
+    return this.floors.reduce((sum, floor) => sum + (floor.area || 0), 0);
   }
 
   openAddFloorModal() {
