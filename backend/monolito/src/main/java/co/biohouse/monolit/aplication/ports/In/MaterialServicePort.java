@@ -11,4 +11,5 @@ public interface MaterialServicePort {
     public List<MaterialPrice> getAllPrices();
     public MaterialPrice getPriceByType(String typeMaterial);
 
+
 }

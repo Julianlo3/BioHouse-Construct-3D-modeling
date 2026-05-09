@@ -8,7 +8,9 @@ import {
   Model3DResponseUnique, 
   Model3DRequest, 
   UserRequest,
-  MaterialsResponse
+  MaterialsResponse,
+  ReportResponse,
+  ReportRequest
 } from '../model/DTO/dto'; 
 
 @Injectable({
@@ -64,5 +66,10 @@ export class Model3dService {
   deleteModel(request: Model3DRequest): Observable<void> {
     // Nota: El controlador en Spring recibe un @RequestBody en el Delete
     return this.http.delete<void>(`${this.API_URL}/delete`, { body: request });
+  }
+
+  // enviar area al back 
+  generateReport(request: ReportRequest): Observable<void>{
+    return this.http.post<void>(`${this.API_URL}/report`, { body: request });
   }
 }

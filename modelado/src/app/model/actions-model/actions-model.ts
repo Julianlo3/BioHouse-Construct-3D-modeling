@@ -19,6 +19,7 @@ import { NavigationStateService } from '../../services/navigation-state.service'
   styleUrl: './actions-model.css',
 })
 export class ActionsModel implements OnInit, OnDestroy {
+
   isMenuOpen = false;
   isAddBrickActive = false;
   isBlockSubMenuOpen = false;
@@ -293,6 +294,21 @@ export class ActionsModel implements OnInit, OnDestroy {
     this.isSaveModalOpen = false;
     this.saveTitle = '';
     this.saveDescription = '';
+  }
+
+
+  generateReport(){
+    let floors;
+    floors =  this.floorManagerService.getFloors();
+    console.log("Calculando el precio para pisos #" + floors.length);
+    let area: number = 0;
+    for (let index = 0; index < floors.length; index++) {
+      console.log("Area piso# " + floors[index].area);
+      area += floors[index].area;
+    }
+    console.log("Area total " + area)
+
+
   }
 
   openLoadModelModal(): void {

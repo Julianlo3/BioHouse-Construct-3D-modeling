@@ -292,4 +292,6 @@ export class FloorManagerService {
       }
     });
   }
+
+ 
 }

@@ -1,38 +1,47 @@
 <div id="information">
-    <h3>Explora nuestra herramienta</h3>
-    <div id="tools">
-        <div class="modelTool">
-            <img src="/assets/brick-Icon.svg" alt="Herramienta">
-            <p>Crea la base de tu estructura</p>
-        </div>
-        <div class="modelTool">
-            <img src="/assets/wall-Icon.svg" alt="Herramienta">
-            <p>Levanta tus paredes con la altura que desees</p>
-        </div>
-        <div class="modelTool">
-            <img src="/assets/door-Icon.svg" alt="Herramienta">
-            <p>Añade la decoración importante</p>
-        </div>
-        <div class="modelTool">
-            <img src="/assets/floor-Icon.svg" alt="Herramienta">
-            <p>Agrega más pisos a tu estructura</p>
-        </div>
-        <div class="modelTool">
-            <img src="/assets/house-Icon.svg" alt="Herramienta">
-            <p>Guarda y conoce el precio de tu construcción</p>
-        </div>
+  <h3>Explora nuestra herramienta</h3>
+  <div id="tools">
+    <div class="modelTool">
+      <img src="/assets/brick-Icon.svg" alt="Herramienta" />
+      <p>Crea la base de tu estructura</p>
     </div>
-    <button class="btn-create" (click)="openChoiceModal()">Empieza a crear tu modelo</button>
+    <div class="modelTool">
+      <img src="/assets/wall-Icon.svg" alt="Herramienta" />
+      <p>Levanta tus paredes con la altura que desees</p>
+    </div>
+    <div class="modelTool">
+      <img src="/assets/door-Icon.svg" alt="Herramienta" />
+      <p>Añade la decoración importante</p>
+    </div>
+    <div class="modelTool">
+      <img src="/assets/floor-Icon.svg" alt="Herramienta" />
+      <p>Agrega más pisos a tu estructura</p>
+    </div>
+    <div class="modelTool">
+      <img src="/assets/house-Icon.svg" alt="Herramienta" />
+      <p>Guarda y conoce el precio de tu construcción</p>
+    </div>
 
-    @if (isChoiceModalOpen) {
-      <div class="confirm-modal-overlay">
-        <div class="confirm-modal">
-          <h3>¿Qué deseas hacer?</h3>
-          <div class="modal-actions">
-            <button class="btn-confirm modal-btn" (click)="chooseLoadOld()">Cargar proyecto antiguo</button>
-            <button class="btn-cancel modal-btn" (click)="chooseNewModel()">Crear modelo nuevo</button>
-          </div>
+    <div class="modelTool" id="report">
+      <img src="/assets/report-text.svg" alt="Reporte" />
+      <p>Genera tu cotización</p>
+    </div>
+  </div>
+  <button class="btn-create" (click)="openChoiceModal()">Empieza a crear tu modelo</button>
+
+  @if (isChoiceModalOpen) {
+    <div class="confirm-modal-overlay">
+      <div class="confirm-modal">
+        <h3>¿Qué deseas hacer?</h3>
+        <div class="modal-actions">
+          <button class="btn-confirm modal-btn" (click)="chooseLoadOld()">
+            Cargar proyecto antiguo
+          </button>
+          <button class="btn-cancel modal-btn" (click)="chooseNewModel()">
+            Crear modelo nuevo
+          </button>
         </div>
       </div>
-    }
+    </div>
+  }
 </div>
