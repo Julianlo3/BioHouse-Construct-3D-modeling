@@ -2,8 +2,12 @@
   <nav class="center-nav">
     <div class="button-group">
       <div class="has-submenu">
-        <button class="action-button main-dark" [class.active]="isAddBrickActive" (click)="toggleBlockSubMenu()">
-          <img src="/assets/brick-Icon.svg" alt="ladrillo">
+        <button
+          class="action-button main-dark"
+          [class.active]="isAddBrickActive"
+          (click)="toggleBlockSubMenu()"
+        >
+          <img src="/assets/brick-Icon.svg" alt="ladrillo" />
         </button>
         <ul class="decoration-submenu" [class.open]="isBlockSubMenuOpen">
           <li><button class="decoration-button" (click)="onAddBrick('full')">Completo</button></li>
@@ -11,41 +15,55 @@
         </ul>
       </div>
 
-      <img class="separator" src="/assets/next-Icon.svg" alt="next">
+      <img class="separator" src="/assets/next-Icon.svg" alt="next" />
 
       <button class="action-button main-dark" [class.active]="isWallActive" (click)="buildWall()">
-        <img src="/assets/wall-Icon.svg" alt="muro">
+        <img src="/assets/wall-Icon.svg" alt="muro" />
       </button>
 
-      <img class="separator" src="/assets/next-Icon.svg" alt="next">
+      <img class="separator" src="/assets/next-Icon.svg" alt="next" />
 
       <div class="has-submenu">
-        <button class="action-button main-dark" [class.active]="isDecorationsActive" (click)="toggleDecorationSubMenu()">
-          <img src="/assets/door-Icon.svg" alt="puerta">
+        <button
+          class="action-button main-dark"
+          [class.active]="isDecorationsActive"
+          (click)="toggleDecorationSubMenu()"
+        >
+          <img src="/assets/door-Icon.svg" alt="puerta" />
         </button>
         <ul class="decoration-submenu" [class.open]="isDecorationSubMenuOpen">
-          <li><button class="decoration-button" (click)="onAddDecoration('door')">Puerta</button></li>
-          <li><button class="decoration-button" (click)="onAddDecoration('window')">Ventana</button></li>
+          <li>
+            <button class="decoration-button" (click)="onAddDecoration('door')">Puerta</button>
+          </li>
+          <li>
+            <button class="decoration-button" (click)="onAddDecoration('window')">Ventana</button>
+          </li>
         </ul>
       </div>
 
-      <img class="separator" src="/assets/next-Icon.svg" alt="next">
+      <img class="separator" src="/assets/next-Icon.svg" alt="next" />
 
       <button class="action-button main-dark" (click)="openAddFloorModal()">
-        <img src="/assets/floor-Icon.svg" alt="piso">
+        <img src="/assets/floor-Icon.svg" alt="piso" />
       </button>
 
-      <img class="separator" src="/assets/next-Icon.svg" alt="next">
+      <img class="separator" src="/assets/next-Icon.svg" alt="next" />
 
       <button class="action-button main-dark" (click)="saveModel()">
-        <img src="/assets/house-Icon.svg" alt="casa">
+        <img src="/assets/house-Icon.svg" alt="casa" />
       </button>
 
-      <img class="separator" src="/assets/next-Icon.svg" alt="next">
+      <img class="separator" src="/assets/next-Icon.svg" alt="next" />
+
+      <button class="action-button main-dark" (click)="generateReport()">
+        <img src="/assets/report-text.svg" alt="Reporte" />
+      </button>
 
       <button class="action-button main-dark hidden-btn" (click)="openLoadModelModal()">
-        <img src="/assets/house-Icon.svg" alt="cargar">
+        <img src="/assets/house-Icon.svg" alt="cargar" />
       </button>
+
+      
     </div>
   </nav>
 
@@ -53,10 +71,12 @@
     <div id="floorSelector">
       <label class="panel-label">🏢 Pisos</label>
       <div class="floor-tabs">
-        <button *ngFor="let floor of floors" 
-                class="floor-tab"
-                [class.active]="activeFloorLevel === floor.level"
-                (click)="selectFloor(floor.level)">
+        <button
+          *ngFor="let floor of floors"
+          class="floor-tab"
+          [class.active]="activeFloorLevel === floor.level"
+          (click)="selectFloor(floor.level)"
+        >
           Piso {{ floor.level }}
         </button>
       </div>
@@ -64,9 +84,14 @@
 
     <div id="opacityControl">
       <label>Opacidad — Piso {{ activeFloorLevel }}</label>
-      <input type="range" min="0.1" max="1.0" step="0.05"
-             [value]="floorOpacity"
-             (input)="onFloorOpacityChange($event)" />
+      <input
+        type="range"
+        min="0.1"
+        max="1.0"
+        step="0.05"
+        [value]="floorOpacity"
+        (input)="onFloorOpacityChange($event)"
+      />
     </div>
 
     <div id="lineGuides">
@@ -74,16 +99,14 @@
         {{ guiasActivas ? 'Guías ON' : 'Guías OFF' }}
       </button>
 
-      <button (click)="calculateArea()" class="calculate-area-btn">
-        Calcular Área
-      </button>
+      <button (click)="calculateArea()" class="calculate-area-btn">Calcular Área</button>
 
       <div id="metricas">
-        <p>Piso activo: {{activeFloorLevel}} / {{floors.length}}</p>
-        <p>Bloques: {{getNumBlocks()}}</p>
-        <p>Columnas: {{getColumnCount()}}</p>
-        <p>Área piso {{activeFloorLevel}}: {{ getActiveFloorArea() | number:'1.0-2' }} m²</p>
-        <p>Área total: {{ getTotalArea() | number:'1.0-2' }} m²</p>
+        <p>Piso activo: {{ activeFloorLevel }} / {{ floors.length }}</p>
+        <p>Bloques: {{ getNumBlocks() }}</p>
+        <p>Columnas: {{ getColumnCount() }}</p>
+        <p>Área piso {{ activeFloorLevel }}: {{ getActiveFloorArea() | number: '1.0-2' }} m²</p>
+        <p>Área total: {{ getTotalArea() | number: '1.0-2' }} m²</p>
       </div>
     </div>
   </div>
@@ -120,10 +143,19 @@
     <h3>Guardar Modelo</h3>
     <div class="modal-content">
       <label>Título del modelo:</label>
-      <input type="text" [(ngModel)]="saveTitle" placeholder="Ej: Casa moderna" class="modal-input">
+      <input
+        type="text"
+        [(ngModel)]="saveTitle"
+        placeholder="Ej: Casa moderna"
+        class="modal-input"
+      />
 
       <label>Descripción (opcional):</label>
-      <textarea [(ngModel)]="saveDescription" placeholder="Ej: Casa de 3 pisos" class="modal-textarea"></textarea>
+      <textarea
+        [(ngModel)]="saveDescription"
+        placeholder="Ej: Casa de 3 pisos"
+        class="modal-textarea"
+      ></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-confirm" (click)="confirmSaveModel()">Guardar</button>
@@ -136,13 +168,13 @@
   <div class="confirm-modal load-modal">
     <h3>Cargar Modelo</h3>
     <div class="modal-content">
-      <div *ngIf="isLoadingModels" class="loading">
-        Cargando modelos...
-      </div>
+      <div *ngIf="isLoadingModels" class="loading">Cargando modelos...</div>
       <div *ngIf="!isLoadingModels && availableModels.length > 0" class="models-list">
-        <button *ngFor="let model of availableModels"
-                class="model-item"
-                (click)="loadSelectedModel(model.id)">
+        <button
+          *ngFor="let model of availableModels"
+          class="model-item"
+          (click)="loadSelectedModel(model.id)"
+        >
           <span class="model-title">{{ model.title }}</span>
           <span class="model-desc">{{ model.description }}</span>
         </button>
@@ -159,10 +191,12 @@
 
 <div id="camare">
   <div class="camera-info-panel">
-    <img src="/assets/camera-Icon.svg" alt="Cámara" class="info-icon">
+    <img src="/assets/camera-Icon.svg" alt="Cámara" class="info-icon" />
     <p>
-      Mantén <strong>clic izquierdo</strong> para rotar la cámara y <strong>clic derecho</strong> para moverla. <br>
-      Usa dos dedos en el <strong>panel táctil</strong> o la rueda del <strong>mouse</strong> para el zoom.
+      Mantén <strong>clic izquierdo</strong> para rotar la cámara y
+      <strong>clic derecho</strong> para moverla. <br />
+      Usa dos dedos en el <strong>panel táctil</strong> o la rueda del <strong>mouse</strong> para
+      el zoom.
     </p>
   </div>
 </div>

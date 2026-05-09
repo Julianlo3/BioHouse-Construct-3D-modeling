@@ -4,3 +4,5 @@ export * from './Model3DResponse';
 export * from './Model3DResponseUnique';
 export * from './Model3DRequest';
 export * from './UserRequest';
+export * from './ReportResponse';
+export * from './ReportRequest'
